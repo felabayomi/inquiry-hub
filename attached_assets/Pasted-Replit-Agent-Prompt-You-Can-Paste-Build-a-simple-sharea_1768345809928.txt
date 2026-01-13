@@ -1,0 +1,15 @@
+Replit Agent Prompt You Can Paste
+
+Build a simple, shareable “Ed.D. AI Inquiry Hub + Report Builder” web app for our cohort (January–July 2026). The app should help a small group (4–5 people per inquiry group, plus facilitators) stay organized, capture inquiry work, and collaboratively assemble the final written report due in June 2026, with a presentation in July 2026. Keep it lightweight, easy to use, and focused on navigation plus report drafting, not complex social networking.
+
+Use a straightforward stack that runs well on Replit: a Node.js + Express server with server-rendered pages (EJS or similar) and SQLite for storage. Implement session-based authentication with invite-only access using a simple “magic code” or admin-created accounts. Add an admin role for facilitators to manage users, sections, and the report outline. Include basic validation, clean UI, and clear empty states.
+
+Core pages: a Home dashboard with key dates, Zoom links, and a timeline; a “My Inquiry” page where each user records their inquiry question, learning pathway (books/course/podcasts/tools), and short weekly reflections; a Shared Resources page where users add links with tags and short annotations; a Meetings page for agendas, notes, and action items; and a Report Builder that guides the group from outline to final draft.
+
+The Report Builder should support a structured outline with editable sections (for example: Introduction/Context, Inquiry Question(s), Methods or Learning Pathway, Key Insights, Ethical/Social Justice Considerations, Implications for Practice, Recommendations/Next Steps, References). Allow users to contribute drafts to specific sections, leave comments, and propose edits. Add simple version history per section (store prior text snapshots with timestamps and author). Provide an export function that generates a clean Markdown file (and optionally a DOCX) of the full report with section headings, author attribution optional, and a references section compiled from saved citations.
+
+Add a “Justice & Ethics Lens” panel visible in the Report Builder that shows guiding prompts (who benefits, who is harmed, privacy/consent, bias, labor, access, accountability) and lets users tag insights with those lenses. Include a “Decisions Log” to record group agreements and rationale over time.
+
+Include seed data for the cohort timeline and deliverables, and make the app easy to configure via an admin settings page (edit dates, meeting link(s), group name, report due date). Add a footer note reminding users not to paste sensitive student data and to use anonymized examples. Keep the UX simple, mobile-friendly, and accessible.
+
+Deliverables: working app with database migrations or initialization, clear README with how to run, how to create the first admin, and how to invite users. Also include a basic test plan checklist for key flows (login, add reflection, add resource, create meeting note, edit report section, export report).
