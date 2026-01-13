@@ -28,6 +28,11 @@ export function setupAuth(app: Express) {
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
+    cookie: {
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      secure: app.get("env") === "production",
+      sameSite: "lax",
+    }
   };
 
   if (app.get("env") === "production") {
