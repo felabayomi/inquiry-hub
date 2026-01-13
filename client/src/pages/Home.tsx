@@ -10,6 +10,16 @@ export default function Home() {
   const { user } = useUser();
   const { data: meetings } = useMeetings();
 
+  // Calculate timeline progress
+  const cohortStartDate = new Date("2026-01-13"); // Updated to today's date
+  const cohortEndDate = new Date("2026-07-01");
+  const today = new Date();
+  
+  const totalDays = (cohortEndDate.getTime() - cohortStartDate.getTime()) / (1000 * 60 * 60 * 24);
+  const elapsedDays = (today.getTime() - cohortStartDate.getTime()) / (1000 * 60 * 60 * 24);
+  const progressPercent = Math.max(0, Math.min(100, (elapsedDays / totalDays) * 100));
+  const currentWeek = Math.max(1, Math.floor(elapsedDays / 7) + 1);
+
   // Sort meetings by date and pick next 3
   const upcomingMeetings = meetings
     ?.filter(m => new Date(m.date) >= new Date())
@@ -29,9 +39,12 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <p className="text-slate-300">You are currently in <span className="text-white font-bold">Week 4</span> of the inquiry process.</p>
+              <p className="text-slate-300">You are currently in <span className="text-white font-bold">Week {currentWeek}</span> of the inquiry process.</p>
               <div className="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
-                <div className="bg-secondary h-full w-1/3 rounded-full" />
+                <div 
+                  className="bg-secondary h-full rounded-full transition-all duration-1000" 
+                  style={{ width: `${progressPercent}%` }}
+                />
               </div>
               <div className="flex justify-between text-xs text-slate-400 font-mono mt-2">
                 <span>Kickoff</span>

@@ -30,7 +30,31 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-100 hidden md:flex flex-col border-r border-slate-800">
+    <>
+      {/* Mobile Header with Settings for Admins */}
+      <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-slate-900 border-b border-slate-800 px-4 flex items-center justify-between z-50">
+        <h1 className="text-lg font-serif font-bold text-white">Cohort Inquiry</h1>
+        <div className="flex items-center gap-2">
+          {user?.role === "admin" && (
+            <Link href="/settings">
+              <div className={cn(
+                "p-2 rounded-md transition-colors",
+                location === "/settings" ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"
+              )}>
+                <Settings className="h-5 w-5" />
+              </div>
+            </Link>
+          )}
+          <button
+            onClick={() => logout()}
+            className="p-2 text-slate-400 hover:text-white"
+          >
+            <LogOut className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
+
+      <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-100 hidden md:flex flex-col border-r border-slate-800">
       <div className="p-6">
         <h1 className="text-xl font-serif font-bold text-slate-100 tracking-tight">
           Cohort Inquiry
@@ -79,5 +103,6 @@ export function Sidebar() {
         </button>
       </div>
     </aside>
+    </>
   );
 }

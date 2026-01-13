@@ -13,7 +13,7 @@ export function PageLayout({ children, title, description, action }: PageLayoutP
     <div className="min-h-screen bg-background flex">
       <Sidebar />
       <main className="flex-1 md:ml-64 flex flex-col min-h-screen transition-all duration-300">
-        <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border px-8 py-6 flex justify-between items-start">
+        <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border px-8 py-6 flex justify-between items-start mt-16 md:mt-0">
           <div>
             <h1 className="text-3xl font-serif font-bold text-foreground tracking-tight">{title}</h1>
             {description && <p className="text-muted-foreground mt-2 font-sans">{description}</p>}
