@@ -18,6 +18,7 @@ export default function AuthPage() {
     fullName: "",
     inviteCode: "",
   });
+  const [keepMeSignedIn, setKeepMeSignedIn] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,6 +91,21 @@ export default function AuthPage() {
                     />
                   </div>
                 </>
+              )}
+
+              {activeTab === "login" && (
+                <div className="flex items-center space-x-2 pt-2">
+                  <input
+                    type="checkbox"
+                    id="keep-signed-in"
+                    checked={keepMeSignedIn}
+                    onChange={(e) => setKeepMeSignedIn(e.target.checked)}
+                    className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
+                  />
+                  <Label htmlFor="keep-signed-in" className="text-sm font-medium text-slate-600 cursor-pointer">
+                    Keep me signed in
+                  </Label>
+                </div>
               )}
 
               <Button 
