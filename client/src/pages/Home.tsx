@@ -1,6 +1,7 @@
 import { PageLayout } from "@/components/layout/PageLayout";
 import { useUser } from "@/hooks/use-auth";
 import { useMeetings } from "@/hooks/use-meetings";
+import { useSettings } from "@/hooks/use-settings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 import { Calendar, ArrowRight, BookOpenCheck } from "lucide-react";
@@ -9,10 +10,14 @@ import { Link } from "wouter";
 export default function Home() {
   const { user } = useUser();
   const { data: meetings } = useMeetings();
+  const { data: settings } = useSettings();
 
   // Calculate timeline progress
-  const cohortStartDate = new Date("2026-01-13"); // Updated to today's date
-  const cohortEndDate = new Date("2026-07-01");
+  const startSetting = settings?.find(s => s.key === 'cohort_start')?.value;
+  const endSetting = settings?.find(s => s.key === 'cohort_end')?.value;
+
+  const cohortStartDate = startSetting ? new Date(startSetting) : new Date("2026-01-13");
+  const cohortEndDate = endSetting ? new Date(endSetting) : new Date("2026-07-01");
   const today = new Date();
   
   const totalDays = (cohortEndDate.getTime() - cohortStartDate.getTime()) / (1000 * 60 * 60 * 24);

@@ -162,6 +162,11 @@ async function seedData() {
     await storage.updateSetting({ key: 'cohort_name', value: 'Ed.D. AI Inquiry Cohort (Jan-July 2026)' });
   }
 
+  if (!(await storage.getSetting('cohort_start'))) {
+    await storage.updateSetting({ key: 'cohort_start', value: '2026-01-13' });
+    await storage.updateSetting({ key: 'cohort_end', value: '2026-07-01' });
+  }
+
   // Seed report outline
   const sections = [
     { title: "Introduction/Context", orderIndex: 1, slug: "intro", description: "Describe the context of your inquiry and why it matters." },
