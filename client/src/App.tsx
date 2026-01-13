@@ -1,4 +1,4 @@
-import { Switch, Route, Redirect } from "wouter";
+import { Switch, Route, Redirect, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -39,6 +39,7 @@ function ProtectedRoute({ component: Component, adminOnly = false }: { component
 }
 
 function Router() {
+  const [location] = useLocation();
   const { user, isLoading } = useUser();
 
   if (isLoading) {
@@ -50,7 +51,7 @@ function Router() {
   }
 
   // Redirect to home if logged in and trying to access auth
-  if (user && window.location.pathname === "/auth") {
+  if (user && location === "/auth") {
     return <Redirect to="/" />;
   }
 

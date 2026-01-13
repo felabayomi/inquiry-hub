@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLogin, useRegister } from "@/hooks/use-auth";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ export default function AuthPage() {
   const [activeTab, setActiveTab] = useState("login");
   const { mutate: login, isPending: isLoginPending } = useLogin();
   const { mutate: register, isPending: isRegisterPending } = useRegister();
+  const [, setLocation] = useLocation();
 
   const [formData, setFormData] = useState({
     username: "",
@@ -23,9 +25,12 @@ export default function AuthPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (activeTab === "login") {
-      login({ username: formData.username, password: formData.password });
+      login(
+        { username: formData.username, password: formData.password },
+        { onSuccess: () => setLocation("/") }
+      );
     } else {
-      register(formData);
+      register(formData, { onSuccess: () => setLocation("/") });
     }
   };
 
