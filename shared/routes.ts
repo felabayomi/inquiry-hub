@@ -1,0 +1,205 @@
+import { z } from 'zod';
+import { 
+  insertUserSchema, insertInquirySchema, insertReflectionSchema, 
+  insertResourceSchema, insertMeetingSchema, insertReportVersionSchema, 
+  insertCommentSchema, insertSettingSchema,
+  users, inquiries, reflections, resources, meetings, reportSections, reportVersions, comments, appSettings 
+} from './schema';
+
+// Shared error schemas
+export const errorSchemas = {
+  validation: z.object({
+    message: z.string(),
+    field: z.string().optional(),
+  }),
+  notFound: z.object({
+    message: z.string(),
+  }),
+  unauthorized: z.object({
+    message: z.string(),
+  }),
+};
+
+// API Contract
+export const api = {
+  auth: {
+    register: {
+      method: 'POST' as const,
+      path: '/api/register',
+      input: insertUserSchema.extend({ inviteCode: z.string() }),
+      responses: {
+        201: z.custom<typeof users.$inferSelect>(),
+        400: errorSchemas.validation,
+      },
+    },
+    login: {
+      method: 'POST' as const,
+      path: '/api/login',
+      input: z.object({ username: z.string(), password: z.string() }),
+      responses: {
+        200: z.custom<typeof users.$inferSelect>(),
+        401: errorSchemas.unauthorized,
+      },
+    },
+    logout: {
+      method: 'POST' as const,
+      path: '/api/logout',
+      responses: {
+        200: z.object({ message: z.string() }),
+      },
+    },
+    me: {
+      method: 'GET' as const,
+      path: '/api/user',
+      responses: {
+        200: z.custom<typeof users.$inferSelect>(),
+        401: errorSchemas.unauthorized,
+      },
+    },
+  },
+  inquiries: {
+    get: {
+      method: 'GET' as const,
+      path: '/api/inquiries/mine',
+      responses: {
+        200: z.custom<typeof inquiries.$inferSelect & { reflections: typeof reflections.$inferSelect[] }>(),
+        404: errorSchemas.notFound,
+      },
+    },
+    upsert: {
+      method: 'POST' as const,
+      path: '/api/inquiries',
+      input: insertInquirySchema.omit({ userId: true }),
+      responses: {
+        200: z.custom<typeof inquiries.$inferSelect>(),
+      },
+    },
+  },
+  reflections: {
+    create: {
+      method: 'POST' as const,
+      path: '/api/reflections',
+      input: insertReflectionSchema.omit({ id: true, createdAt: true }), // Frontend sends inquiryId
+      responses: {
+        201: z.custom<typeof reflections.$inferSelect>(),
+      },
+    },
+  },
+  resources: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/resources',
+      responses: {
+        200: z.array(z.custom<typeof resources.$inferSelect & { user: typeof users.$inferSelect }>()),
+      },
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/resources',
+      input: insertResourceSchema.omit({ userId: true }),
+      responses: {
+        201: z.custom<typeof resources.$inferSelect>(),
+      },
+    },
+  },
+  meetings: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/meetings',
+      responses: {
+        200: z.array(z.custom<typeof meetings.$inferSelect>()),
+      },
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/meetings',
+      input: insertMeetingSchema,
+      responses: {
+        201: z.custom<typeof meetings.$inferSelect>(),
+      },
+    },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/meetings/:id',
+      input: insertMeetingSchema.partial(),
+      responses: {
+        200: z.custom<typeof meetings.$inferSelect>(),
+      },
+    },
+  },
+  report: {
+    sections: {
+      method: 'GET' as const,
+      path: '/api/report/sections',
+      responses: {
+        200: z.array(z.custom<typeof reportSections.$inferSelect>()),
+      },
+    },
+    latestVersions: {
+      method: 'GET' as const,
+      path: '/api/report/sections/:sectionId/latest',
+      responses: {
+        200: z.custom<typeof reportVersions.$inferSelect & { author: typeof users.$inferSelect } | null>(),
+      },
+    },
+    history: {
+      method: 'GET' as const,
+      path: '/api/report/sections/:sectionId/history',
+      responses: {
+        200: z.array(z.custom<typeof reportVersions.$inferSelect & { author: typeof users.$inferSelect }>()),
+      },
+    },
+    saveVersion: {
+      method: 'POST' as const,
+      path: '/api/report/versions',
+      input: insertReportVersionSchema.omit({ userId: true }),
+      responses: {
+        201: z.custom<typeof reportVersions.$inferSelect>(),
+      },
+    },
+    comments: {
+      method: 'GET' as const,
+      path: '/api/report/sections/:sectionId/comments',
+      responses: {
+        200: z.array(z.custom<typeof comments.$inferSelect & { author: typeof users.$inferSelect }>()),
+      },
+    },
+    addComment: {
+      method: 'POST' as const,
+      path: '/api/report/comments',
+      input: insertCommentSchema.omit({ userId: true }),
+      responses: {
+        201: z.custom<typeof comments.$inferSelect>(),
+      },
+    },
+  },
+  settings: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/settings',
+      responses: {
+        200: z.array(z.custom<typeof appSettings.$inferSelect>()),
+      },
+    },
+    update: {
+      method: 'POST' as const,
+      path: '/api/settings',
+      input: insertSettingSchema,
+      responses: {
+        200: z.custom<typeof appSettings.$inferSelect>(),
+      },
+    },
+  },
+};
+
+export function buildUrl(path: string, params?: Record<string, string | number>): string {
+  let url = path;
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (url.includes(`:${key}`)) {
+        url = url.replace(`:${key}`, String(value));
+      }
+    });
+  }
+  return url;
+}
