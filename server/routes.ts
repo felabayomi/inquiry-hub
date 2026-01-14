@@ -113,6 +113,27 @@ export async function registerRoutes(
     res.json(sections);
   });
 
+  // Admin section management
+  app.post(api.report.createSection.path, async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) return res.sendStatus(401);
+    const input = api.report.createSection.input.parse(req.body);
+    const section = await storage.createReportSection(input);
+    res.status(201).json(section);
+  });
+
+  app.patch('/api/admin/report/sections/:id', async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) return res.sendStatus(401);
+    const input = api.report.updateSection.input.parse(req.body);
+    const section = await storage.updateReportSection(Number(req.params.id), input);
+    res.json(section);
+  });
+
+  app.delete('/api/admin/report/sections/:id', async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) return res.sendStatus(401);
+    await storage.deleteReportSection(Number(req.params.id));
+    res.json({ success: true });
+  });
+
   app.get(api.report.latestVersions.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     const version = await storage.getLatestReportVersion(Number(req.params.sectionId));

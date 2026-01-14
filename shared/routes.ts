@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { 
   insertUserSchema, insertInquirySchema, insertReflectionSchema, 
   insertResourceSchema, insertMeetingSchema, insertReportVersionSchema, 
-  insertCommentSchema, insertSettingSchema, insertInquiryCommentSchema,
+  insertCommentSchema, insertSettingSchema, insertInquiryCommentSchema, insertReportSectionSchema,
   users, inquiries, reflections, resources, meetings, reportSections, reportVersions, comments, appSettings, inquiryComments
 } from './schema';
 
@@ -158,6 +158,29 @@ export const api = {
       path: '/api/report/sections',
       responses: {
         200: z.array(z.custom<typeof reportSections.$inferSelect>()),
+      },
+    },
+    createSection: {
+      method: 'POST' as const,
+      path: '/api/admin/report/sections',
+      input: insertReportSectionSchema,
+      responses: {
+        201: z.custom<typeof reportSections.$inferSelect>(),
+      },
+    },
+    updateSection: {
+      method: 'PATCH' as const,
+      path: '/api/admin/report/sections/:id',
+      input: insertReportSectionSchema.partial(),
+      responses: {
+        200: z.custom<typeof reportSections.$inferSelect>(),
+      },
+    },
+    deleteSection: {
+      method: 'DELETE' as const,
+      path: '/api/admin/report/sections/:id',
+      responses: {
+        200: z.object({ success: z.boolean() }),
       },
     },
     latestVersions: {

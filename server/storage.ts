@@ -2,7 +2,7 @@ import { db } from "./db";
 import { 
   users, inquiries, reflections, resources, meetings, reportSections, reportVersions, comments, appSettings, inquiryComments,
   type User, type Inquiry, type Reflection, type Resource, type Meeting, type ReportSection, type ReportVersion, type Comment, type AppSetting, type InquiryComment,
-  type InsertUser, type InsertInquiry, type InsertReflection, type InsertResource, type InsertMeeting, type InsertReportVersion, type InsertComment, type InsertSetting, type InsertInquiryComment
+  type InsertUser, type InsertInquiry, type InsertReflection, type InsertResource, type InsertMeeting, type InsertReportVersion, type InsertComment, type InsertSetting, type InsertInquiryComment, type InsertReportSection
 } from "@shared/schema";
 import { eq, desc, and } from "drizzle-orm";
 import session from "express-session";
@@ -42,6 +42,9 @@ export interface IStorage {
 
   // Report
   getReportSections(): Promise<ReportSection[]>;
+  createReportSection(section: InsertReportSection): Promise<ReportSection>;
+  updateReportSection(id: number, section: Partial<InsertReportSection>): Promise<ReportSection>;
+  deleteReportSection(id: number): Promise<void>;
   getLatestReportVersion(sectionId: number): Promise<(ReportVersion & { author: User }) | undefined>;
   getReportHistory(sectionId: number): Promise<(ReportVersion & { author: User })[]>;
   createReportVersion(version: InsertReportVersion): Promise<ReportVersion>;
@@ -186,6 +189,26 @@ export class DatabaseStorage implements IStorage {
 
   async getReportSections(): Promise<ReportSection[]> {
     return await db.select().from(reportSections).orderBy(reportSections.orderIndex);
+  }
+
+  async createReportSection(section: InsertReportSection): Promise<ReportSection> {
+    const [newSection] = await db.insert(reportSections).values(section).returning();
+    return newSection;
+  }
+
+  async updateReportSection(id: number, section: Partial<InsertReportSection>): Promise<ReportSection> {
+    const [updated] = await db.update(reportSections)
+      .set(section)
+      .where(eq(reportSections.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteReportSection(id: number): Promise<void> {
+    // Delete related versions and comments first
+    await db.delete(reportVersions).where(eq(reportVersions.sectionId, id));
+    await db.delete(comments).where(eq(comments.sectionId, id));
+    await db.delete(reportSections).where(eq(reportSections.id, id));
   }
 
   async getLatestReportVersion(sectionId: number): Promise<(ReportVersion & { author: User }) | undefined> {
