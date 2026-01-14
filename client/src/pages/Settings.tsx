@@ -366,11 +366,49 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        {/* Justice Lenses Management */}
+        {/* Default Justice Lenses */}
         <Card className="paper-card">
           <CardHeader>
-            <CardTitle className="text-xl font-serif">Justice Lenses</CardTitle>
-            <CardDescription>Manage the ethical lenses members can apply to their report drafts.</CardDescription>
+            <CardTitle className="text-xl font-serif">Default Justice Lenses</CardTitle>
+            <CardDescription>These are the built-in ethical lenses that members can apply to their report drafts.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {lenses?.filter(l => ['who_benefits', 'who_is_harmed', 'labor', 'power'].includes(l.slug))
+                .sort((a,b) => a.orderIndex - b.orderIndex)
+                .map((lens) => (
+                <div key={lens.id} className="flex items-center justify-between p-4 border rounded-lg gap-4 bg-white" data-testid={`default-lens-${lens.id}`}>
+                  <div className="flex items-center gap-3 flex-1">
+                    <Scale className="h-4 w-4 text-primary" />
+                    <div className="flex-1">
+                      <p className="font-medium text-slate-900">{lens.label}</p>
+                      <p className="text-xs text-muted-foreground">{lens.slug}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      onClick={() => openEditLensDialog(lens)}
+                      data-testid={`button-edit-default-lens-${lens.id}`}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              {lenses?.filter(l => ['who_benefits', 'who_is_harmed', 'labor', 'power'].includes(l.slug)).length === 0 && (
+                <p className="text-sm text-muted-foreground italic">Default lenses will be created when the system starts.</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Custom Justice Lenses */}
+        <Card className="paper-card">
+          <CardHeader>
+            <CardTitle className="text-xl font-serif">Custom Lenses</CardTitle>
+            <CardDescription>Create additional ethical lenses for your cohort's specific needs.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-8">
             <form onSubmit={handleCreateLens} className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 border rounded-lg bg-slate-50/50">
@@ -395,17 +433,19 @@ export default function Settings() {
                 />
               </div>
               <Button type="submit" className="md:col-span-2 mt-2" disabled={isCreatingLens} data-testid="button-add-lens">
-                <Plus className="mr-2 h-4 w-4" /> Add Lens
+                <Plus className="mr-2 h-4 w-4" /> Add Custom Lens
               </Button>
             </form>
 
             <div className="space-y-4">
-              <h3 className="font-serif text-lg font-bold">Current Lenses</h3>
+              <h3 className="font-serif text-lg font-bold">Your Custom Lenses</h3>
               <div className="space-y-2">
-                {lenses?.length === 0 ? (
-                  <p className="text-sm text-muted-foreground italic">No lenses created yet.</p>
+                {lenses?.filter(l => !['who_benefits', 'who_is_harmed', 'labor', 'power'].includes(l.slug)).length === 0 ? (
+                  <p className="text-sm text-muted-foreground italic">No custom lenses created yet. Use the form above to add your own.</p>
                 ) : (
-                  lenses?.sort((a,b) => a.orderIndex - b.orderIndex).map((lens) => (
+                  lenses?.filter(l => !['who_benefits', 'who_is_harmed', 'labor', 'power'].includes(l.slug))
+                    .sort((a,b) => a.orderIndex - b.orderIndex)
+                    .map((lens) => (
                     <div key={lens.id} className="flex items-center justify-between p-4 border rounded-lg gap-4 bg-white" data-testid={`lens-item-${lens.id}`}>
                       <div className="flex items-center gap-3 flex-1">
                         <GripVertical className="h-4 w-4 text-slate-300" />
@@ -450,43 +490,43 @@ export default function Settings() {
                 )}
               </div>
             </div>
-
-            {/* Edit Lens Dialog */}
-            <Dialog open={!!editingLens} onOpenChange={(open) => !open && setEditingLens(null)}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Edit Justice Lens</DialogTitle>
-                  <DialogDescription>Update the label and identifier for this lens.</DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label>Label (displayed to users)</Label>
-                    <Input 
-                      value={editLensForm.label}
-                      onChange={(e) => setEditLensForm({ ...editLensForm, label: e.target.value })}
-                      placeholder="e.g. Who benefits?"
-                      data-testid="input-edit-lens-label"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Slug (unique identifier)</Label>
-                    <Input 
-                      value={editLensForm.slug}
-                      onChange={(e) => setEditLensForm({ ...editLensForm, slug: e.target.value.toLowerCase().replace(/\s+/g, '_') })}
-                      placeholder="e.g. who_benefits"
-                      data-testid="input-edit-lens-slug"
-                    />
-                    <p className="text-xs text-muted-foreground">Used internally to identify this lens. Use lowercase letters and underscores.</p>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setEditingLens(null)}>Cancel</Button>
-                  <Button onClick={handleSaveLens} data-testid="button-save-lens">Save Changes</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
           </CardContent>
         </Card>
+
+        {/* Edit Lens Dialog */}
+        <Dialog open={!!editingLens} onOpenChange={(open) => !open && setEditingLens(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Justice Lens</DialogTitle>
+              <DialogDescription>Update the label and identifier for this lens.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Label (displayed to users)</Label>
+                <Input 
+                  value={editLensForm.label}
+                  onChange={(e) => setEditLensForm({ ...editLensForm, label: e.target.value })}
+                  placeholder="e.g. Who benefits?"
+                  data-testid="input-edit-lens-label"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Slug (unique identifier)</Label>
+                <Input 
+                  value={editLensForm.slug}
+                  onChange={(e) => setEditLensForm({ ...editLensForm, slug: e.target.value.toLowerCase().replace(/\s+/g, '_') })}
+                  placeholder="e.g. who_benefits"
+                  data-testid="input-edit-lens-slug"
+                />
+                <p className="text-xs text-muted-foreground">Used internally to identify this lens. Use lowercase letters and underscores.</p>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditingLens(null)}>Cancel</Button>
+              <Button onClick={handleSaveLens} data-testid="button-save-lens">Save Changes</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Security & Access */}
         <Card className="paper-card">
