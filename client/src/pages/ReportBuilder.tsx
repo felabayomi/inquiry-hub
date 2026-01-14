@@ -14,8 +14,9 @@ import {
   type VersionWithEngagement
 } from "@/hooks/use-report";
 import { useUser } from "@/hooks/use-auth";
+import { useGenerateSectionSynthesis, type AiSummaryOutput } from "@/hooks/use-ai";
 import { cn } from "@/lib/utils";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -24,6 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { 
   Eye, 
   MessageSquare, 
@@ -35,7 +37,12 @@ import {
   Sparkles, 
   Heart, 
   Brain,
-  Plus
+  Plus,
+  Bot,
+  Loader2,
+  Quote,
+  HelpCircle,
+  ArrowRight
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -381,6 +388,136 @@ function SectionFeed({
   );
 }
 
+function AiSynthesisDialog({ 
+  open, 
+  onOpenChange, 
+  synthesis,
+  isLoading,
+  sectionTitle
+}: { 
+  open: boolean; 
+  onOpenChange: (open: boolean) => void;
+  synthesis: AiSummaryOutput | null;
+  isLoading: boolean;
+  sectionTitle: string;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Bot className="h-5 w-5 text-primary" />
+            AI Synthesis: {sectionTitle}
+          </DialogTitle>
+          <DialogDescription>
+            AI-generated summary of all contributions in this section
+          </DialogDescription>
+        </DialogHeader>
+
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+            <p className="text-muted-foreground">Analyzing contributions...</p>
+          </div>
+        ) : synthesis ? (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Summary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm leading-relaxed">{synthesis.highLevelSummary}</p>
+              </CardContent>
+            </Card>
+
+            {synthesis.keyThemes.length > 0 && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Tag className="h-4 w-4" />
+                    Key Themes
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {synthesis.keyThemes.map((theme, i) => (
+                      <Badge key={i} variant="secondary">{theme}</Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {synthesis.notableQuotes.length > 0 && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Quote className="h-4 w-4" />
+                    Notable Quotes
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {synthesis.notableQuotes.map((quote, i) => (
+                    <blockquote key={i} className="border-l-2 border-primary pl-4 italic text-sm text-muted-foreground">
+                      "{quote.text}"
+                    </blockquote>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
+            {synthesis.openQuestions.length > 0 && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <HelpCircle className="h-4 w-4" />
+                    Open Questions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {synthesis.openQuestions.map((q, i) => (
+                      <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                        <span className="text-primary">•</span>
+                        {q}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
+            {synthesis.recommendedNextSteps.length > 0 && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <ArrowRight className="h-4 w-4" />
+                    Recommended Next Steps
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {synthesis.recommendedNextSteps.map((step, i) => (
+                      <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                        <span className="font-medium text-primary">{i + 1}.</span>
+                        {step}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">
+            No synthesis available yet.
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function ReportBuilder() {
   const { user } = useUser();
   const { data: sections } = useReportSections();
@@ -389,6 +526,11 @@ export default function ReportBuilder() {
   const { mutate: markRead } = useMarkVersionRead();
   const { data: totalUsers = 5 } = useTotalUsersCount();
   const [activeTab, setActiveTab] = useState<string>("");
+  const [synthesisDialogOpen, setSynthesisDialogOpen] = useState(false);
+  const [currentSynthesis, setCurrentSynthesis] = useState<AiSummaryOutput | null>(null);
+  const [synthesizingSectionId, setSynthesizingSectionId] = useState<number | null>(null);
+  const [synthesisDialogTitle, setSynthesisDialogTitle] = useState<string>("Section");
+  const { mutate: generateSynthesis, isPending: isSynthesizing } = useGenerateSectionSynthesis();
 
   useEffect(() => {
     if (sections && sections.length > 0 && !activeTab) {
@@ -413,6 +555,25 @@ export default function ReportBuilder() {
     });
     return counts;
   }, [allVersions, sections, myReadIds, user?.id]);
+
+  const handleSynthesizeSection = (sectionId: number, sectionTitle: string) => {
+    // Prevent starting a new synthesis while one is in progress
+    if (isSynthesizing) return;
+    
+    setSynthesizingSectionId(sectionId);
+    setSynthesisDialogTitle(sectionTitle);
+    setCurrentSynthesis(null);
+    setSynthesisDialogOpen(true);
+    generateSynthesis(sectionId, {
+      onSuccess: (data) => {
+        setCurrentSynthesis(data);
+        setSynthesizingSectionId(null);
+      },
+      onError: () => {
+        setSynthesizingSectionId(null);
+      }
+    });
+  };
 
   if (!user) return null;
   if (!activeTab) return <PageLayout title="Report Builder">Loading...</PageLayout>;
@@ -455,13 +616,32 @@ export default function ReportBuilder() {
             <TabsContent key={section.slug} value={section.slug} className="mt-6">
               <div className="flex flex-col lg:flex-row gap-6">
                 <div className="flex-1">
-                  {section.description && (
-                    <Card className="mb-4 bg-muted/50">
-                      <CardContent className="p-4">
-                        <p className="text-sm text-muted-foreground">{section.description}</p>
-                      </CardContent>
-                    </Card>
-                  )}
+                  {/* Section Header with optional description and AI button */}
+                  <div className="mb-4 space-y-3">
+                    <div className="flex items-center justify-end">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleSynthesizeSection(section.id, section.title)}
+                        disabled={isSynthesizing}
+                        data-testid={`button-synthesize-${section.slug}`}
+                      >
+                        {isSynthesizing && synthesizingSectionId === section.id ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <Bot className="h-4 w-4 mr-2" />
+                        )}
+                        AI Synthesis
+                      </Button>
+                    </div>
+                    {section.description && (
+                      <Card className="bg-muted/50">
+                        <CardContent className="p-4">
+                          <p className="text-sm text-muted-foreground">{section.description}</p>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
 
                   {versionsLoading ? (
                     <div className="text-center py-8 text-muted-foreground">Loading posts...</div>
@@ -501,6 +681,14 @@ export default function ReportBuilder() {
           ))}
         </Tabs>
       </div>
+
+      <AiSynthesisDialog
+        open={synthesisDialogOpen}
+        onOpenChange={setSynthesisDialogOpen}
+        synthesis={currentSynthesis}
+        isLoading={isSynthesizing}
+        sectionTitle={synthesisDialogTitle}
+      />
     </PageLayout>
   );
 }
