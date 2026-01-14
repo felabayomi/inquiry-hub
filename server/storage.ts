@@ -1,8 +1,8 @@
 import { db } from "./db";
 import { 
-  users, inquiries, reflections, resources, meetings, reportSections, reportVersions, comments, appSettings, inquiryComments, justiceLenses,
-  type User, type Inquiry, type Reflection, type Resource, type Meeting, type ReportSection, type ReportVersion, type Comment, type AppSetting, type InquiryComment, type JusticeLens,
-  type InsertUser, type InsertInquiry, type InsertReflection, type InsertResource, type InsertMeeting, type InsertReportVersion, type InsertComment, type InsertSetting, type InsertInquiryComment, type InsertReportSection, type InsertJusticeLens
+  users, inquiries, reflections, resources, meetings, reportSections, reportVersions, comments, appSettings, inquiryComments, justiceLenses, postReads, postReactions,
+  type User, type Inquiry, type Reflection, type Resource, type Meeting, type ReportSection, type ReportVersion, type Comment, type AppSetting, type InquiryComment, type JusticeLens, type PostRead, type PostReaction,
+  type InsertUser, type InsertInquiry, type InsertReflection, type InsertResource, type InsertMeeting, type InsertReportVersion, type InsertComment, type InsertSetting, type InsertInquiryComment, type InsertReportSection, type InsertJusticeLens, type InsertPostRead, type InsertPostReaction
 } from "@shared/schema";
 import { eq, desc, and } from "drizzle-orm";
 import session from "express-session";
@@ -65,6 +65,14 @@ export interface IStorage {
   createJusticeLens(lens: InsertJusticeLens): Promise<JusticeLens>;
   updateJusticeLens(id: number, lens: Partial<InsertJusticeLens>): Promise<JusticeLens | undefined>;
   deleteJusticeLens(id: number): Promise<boolean>;
+
+  // Post Reads & Reactions
+  markVersionRead(versionId: number, userId: number): Promise<PostRead>;
+  getVersionReads(versionId: number): Promise<(PostRead & { user: User })[]>;
+  getUserReadVersionIds(userId: number): Promise<number[]>;
+  toggleReaction(versionId: number, userId: number, reactionType: string): Promise<{ added: boolean }>;
+  getVersionReactions(versionId: number): Promise<(PostReaction & { user: User })[]>;
+  getAllVersionsWithEngagement(): Promise<(ReportVersion & { author: User, reads: (PostRead & { user: User })[], reactions: (PostReaction & { user: User })[] })[]>;
 
   // Seeding helpers
   seedReportSections(sections: InsertReportSection[]): Promise<void>;
@@ -335,6 +343,67 @@ export class DatabaseStorage implements IStorage {
     if (existing.length === 0) {
       await db.insert(justiceLenses).values(lenses);
     }
+  }
+
+  async markVersionRead(versionId: number, userId: number): Promise<PostRead> {
+    const existing = await db.select().from(postReads)
+      .where(and(eq(postReads.versionId, versionId), eq(postReads.userId, userId)));
+    if (existing.length > 0) {
+      return existing[0];
+    }
+    const [newRead] = await db.insert(postReads).values({ versionId, userId }).returning();
+    return newRead;
+  }
+
+  async getVersionReads(versionId: number): Promise<(PostRead & { user: User })[]> {
+    return await db.query.postReads.findMany({
+      where: eq(postReads.versionId, versionId),
+      with: { user: true }
+    });
+  }
+
+  async getUserReadVersionIds(userId: number): Promise<number[]> {
+    const reads = await db.select({ versionId: postReads.versionId })
+      .from(postReads)
+      .where(eq(postReads.userId, userId));
+    return reads.map(r => r.versionId);
+  }
+
+  async toggleReaction(versionId: number, userId: number, reactionType: string): Promise<{ added: boolean }> {
+    const existing = await db.select().from(postReactions)
+      .where(and(
+        eq(postReactions.versionId, versionId),
+        eq(postReactions.userId, userId),
+        eq(postReactions.reactionType, reactionType)
+      ));
+    if (existing.length > 0) {
+      await db.delete(postReactions).where(eq(postReactions.id, existing[0].id));
+      return { added: false };
+    }
+    await db.insert(postReactions).values({ versionId, userId, reactionType }).returning();
+    return { added: true };
+  }
+
+  async getVersionReactions(versionId: number): Promise<(PostReaction & { user: User })[]> {
+    return await db.query.postReactions.findMany({
+      where: eq(postReactions.versionId, versionId),
+      with: { user: true }
+    });
+  }
+
+  async getAllVersionsWithEngagement(): Promise<(ReportVersion & { author: User, reads: (PostRead & { user: User })[], reactions: (PostReaction & { user: User })[] })[]> {
+    const versions = await db.query.reportVersions.findMany({
+      orderBy: desc(reportVersions.createdAt),
+      with: { author: true }
+    });
+    
+    const result = await Promise.all(versions.map(async (version) => {
+      const reads = await this.getVersionReads(version.id);
+      const reactions = await this.getVersionReactions(version.id);
+      return { ...version, reads, reactions };
+    }));
+    
+    return result;
   }
 }
 
