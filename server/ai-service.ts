@@ -19,13 +19,22 @@ const openai = new OpenAI({
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
 });
 
+export interface EvidenceItem {
+  chunkId: number;
+  sourceType: string;
+  sourceId: number;
+  excerpt: string;
+  authorName?: string;
+  sectionId?: number;
+}
+
 export interface AiSummaryOutput {
   highLevelSummary: string;
   keyThemes: string[];
-  notableQuotes: { text: string; chunkId: number }[];
+  notableQuotes: { text: string; chunkId: number; sourceType?: string; sourceId?: number }[];
   openQuestions: string[];
   recommendedNextSteps: string[];
-  evidence: { chunkId: number; sourceType: string; excerpt: string; authorName?: string }[];
+  evidence: EvidenceItem[];
 }
 
 function computeHash(text: string): string {
@@ -225,10 +234,25 @@ Respond with a JSON object containing:
     const content = response.choices[0]?.message?.content || "{}";
     const parsed = JSON.parse(content) as AiSummaryOutput;
     
-    parsed.evidence = (parsed.evidence || []).map(e => ({
-      ...e,
-      authorName: chunksResult[e.chunkId - 1]?.user?.fullName || "Unknown",
-    }));
+    parsed.evidence = (parsed.evidence || []).map(e => {
+      const chunk = chunksResult[e.chunkId - 1];
+      return {
+        ...e,
+        sourceType: chunk?.chunk.sourceType || e.sourceType,
+        sourceId: chunk?.chunk.sourceId || 0,
+        sectionId: chunk?.chunk.sectionId || undefined,
+        authorName: chunk?.user?.fullName || "Unknown",
+      };
+    });
+
+    parsed.notableQuotes = (parsed.notableQuotes || []).map(q => {
+      const chunk = chunksResult[q.chunkId - 1];
+      return {
+        ...q,
+        sourceType: chunk?.chunk.sourceType,
+        sourceId: chunk?.chunk.sourceId,
+      };
+    });
 
     await db.insert(aiSummaries).values({
       type: "my_journey",
@@ -297,10 +321,25 @@ Respond with a JSON object containing:
     const content = response.choices[0]?.message?.content || "{}";
     const parsed = JSON.parse(content) as AiSummaryOutput;
     
-    parsed.evidence = (parsed.evidence || []).map(e => ({
-      ...e,
-      authorName: chunksResult[e.chunkId - 1]?.user?.fullName || "Unknown",
-    }));
+    parsed.evidence = (parsed.evidence || []).map(e => {
+      const chunk = chunksResult[e.chunkId - 1];
+      return {
+        ...e,
+        sourceType: chunk?.chunk.sourceType || e.sourceType,
+        sourceId: chunk?.chunk.sourceId || 0,
+        sectionId: chunk?.chunk.sectionId || sectionId,
+        authorName: chunk?.user?.fullName || "Unknown",
+      };
+    });
+
+    parsed.notableQuotes = (parsed.notableQuotes || []).map(q => {
+      const chunk = chunksResult[q.chunkId - 1];
+      return {
+        ...q,
+        sourceType: chunk?.chunk.sourceType,
+        sourceId: chunk?.chunk.sourceId,
+      };
+    });
 
     await db.insert(aiSummaries).values({
       type: "section_draft",

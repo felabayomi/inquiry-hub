@@ -22,7 +22,8 @@ import {
   FileText,
   Clock,
   Loader2,
-  Copy
+  Copy,
+  ExternalLink
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -153,15 +154,37 @@ function SummaryCard({ summary, title, generatedAt }: { summary: AiSummaryOutput
             <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
               <FileText className="h-4 w-4 text-muted-foreground" />
               Supporting Evidence
+              <span className="text-xs text-muted-foreground font-normal">(click to view source)</span>
             </h4>
             <div className="space-y-2">
-              {summary.evidence.slice(0, 5).map((ev, i) => (
-                <div key={i} className="text-xs bg-muted/50 rounded p-2">
-                  <span className="font-medium">{ev.authorName || "Unknown"}</span>
-                  <span className="text-muted-foreground"> ({ev.sourceType})</span>
-                  <p className="text-muted-foreground mt-1 line-clamp-2">{ev.excerpt}</p>
-                </div>
-              ))}
+              {summary.evidence.slice(0, 5).map((ev, i) => {
+                const sourceLabel = ev.sourceType === "report_post" ? "contribution" :
+                  ev.sourceType === "reflection" ? "reflection" :
+                  ev.sourceType === "resource" ? "resource" :
+                  ev.sourceType === "comment" ? "comment" : "content";
+                
+                const linkPath = ev.sourceType === "report_post" && ev.sourceId ? 
+                  `/report?highlight=${ev.sourceId}` :
+                  ev.sourceType === "reflection" ? "/inquiries" :
+                  ev.sourceType === "resource" ? "/resources" :
+                  ev.sourceType === "comment" ? "/report" :
+                  null;
+
+                return (
+                  <div key={i} className="text-xs bg-muted/50 rounded p-2 hover-elevate cursor-pointer group" onClick={() => linkPath && (window.location.href = linkPath)}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="font-medium">{ev.authorName || "Unknown"}</span>
+                        <span className="text-muted-foreground"> ({sourceLabel})</span>
+                      </div>
+                      {linkPath && (
+                        <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                      )}
+                    </div>
+                    <p className="text-muted-foreground mt-1 line-clamp-2">{ev.excerpt}</p>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { PageLayout } from "@/components/layout/PageLayout";
 import { 
   useReportSections, 
@@ -43,7 +43,9 @@ import {
   Quote,
   HelpCircle,
   ArrowRight,
-  Copy
+  Copy,
+  ExternalLink,
+  FileText
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -69,16 +71,28 @@ function VersionCard({
   isUnread,
   currentUserId,
   totalUsers,
-  onMarkRead
+  onMarkRead,
+  isHighlighted
 }: { 
   version: VersionWithEngagement;
   isUnread: boolean;
   currentUserId: number;
   totalUsers: number;
   onMarkRead: () => void;
+  isHighlighted?: boolean;
 }) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(isHighlighted || false);
   const { mutate: toggleReaction } = useToggleReaction();
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isHighlighted && cardRef.current) {
+      cardRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (isUnread) {
+        onMarkRead();
+      }
+    }
+  }, [isHighlighted]);
 
   const handleExpand = () => {
     if (!isExpanded && isUnread) {
@@ -110,10 +124,14 @@ function VersionCard({
   const previewText = version.content.slice(0, 200) + (version.content.length > 200 ? "..." : "");
 
   return (
-    <Card className={cn(
-      "transition-all",
-      isUnread && "ring-2 ring-primary/50 bg-primary/5"
-    )}>
+    <Card 
+      ref={cardRef}
+      className={cn(
+        "transition-all",
+        isUnread && "ring-2 ring-primary/50 bg-primary/5",
+        isHighlighted && "ring-2 ring-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 animate-pulse"
+      )}
+    >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           <Avatar className="h-10 w-10 flex-shrink-0">
@@ -295,7 +313,8 @@ function SectionFeed({
   myReadIds,
   currentUserId,
   totalUsers,
-  onMarkRead
+  onMarkRead,
+  highlightedVersionId
 }: { 
   sectionId: number;
   versions: VersionWithEngagement[];
@@ -303,6 +322,7 @@ function SectionFeed({
   currentUserId: number;
   totalUsers: number;
   onMarkRead: (versionId: number) => void;
+  highlightedVersionId?: number | null;
 }) {
   const sectionVersions = versions.filter(v => v.sectionId === sectionId);
   const [showEditor, setShowEditor] = useState(false);
@@ -389,6 +409,7 @@ function SectionFeed({
           currentUserId={currentUserId}
           totalUsers={totalUsers}
           onMarkRead={() => onMarkRead(version.id)}
+          isHighlighted={highlightedVersionId === version.id}
         />
       ))}
     </div>
@@ -561,6 +582,49 @@ function AiSynthesisDialog({
                 </CardContent>
               </Card>
             )}
+
+            {synthesis.evidence && synthesis.evidence.length > 0 && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Supporting Evidence
+                    <span className="text-xs text-muted-foreground font-normal">(click to view)</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {synthesis.evidence.slice(0, 5).map((ev, i) => {
+                    const sourceLabel = ev.sourceType === "report_post" ? "contribution" :
+                      ev.sourceType === "reflection" ? "reflection" :
+                      ev.sourceType === "resource" ? "resource" :
+                      ev.sourceType === "comment" ? "comment" : "content";
+
+                    return (
+                      <div 
+                        key={i} 
+                        className="text-xs bg-muted/50 rounded p-2 hover-elevate cursor-pointer group"
+                        onClick={() => {
+                          onOpenChange(false);
+                          if (ev.sourceType === "report_post" && ev.sourceId) {
+                            window.location.href = `/report?highlight=${ev.sourceId}`;
+                          }
+                        }}
+                        data-testid={`evidence-item-${i}`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="font-medium">{ev.authorName || "Unknown"}</span>
+                            <span className="text-muted-foreground"> ({sourceLabel})</span>
+                          </div>
+                          <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                        <p className="text-muted-foreground mt-1 line-clamp-2">{ev.excerpt}</p>
+                      </div>
+                    );
+                  })}
+                </CardContent>
+              </Card>
+            )}
           </div>
         ) : (
           <div className="text-center py-8 text-muted-foreground">
@@ -584,7 +648,35 @@ export default function ReportBuilder() {
   const [currentSynthesis, setCurrentSynthesis] = useState<AiSummaryOutput | null>(null);
   const [synthesizingSectionId, setSynthesizingSectionId] = useState<number | null>(null);
   const [synthesisDialogTitle, setSynthesisDialogTitle] = useState<string>("Section");
+  const [highlightedVersionId, setHighlightedVersionId] = useState<number | null>(null);
   const { mutate: generateSynthesis, isPending: isSynthesizing } = useGenerateSectionSynthesis();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const highlightParam = params.get('highlight');
+    if (highlightParam) {
+      const versionId = parseInt(highlightParam, 10);
+      if (!isNaN(versionId)) {
+        setHighlightedVersionId(versionId);
+        // Find the section containing this version and switch to it
+        if (allVersions && sections) {
+          const version = allVersions.find(v => v.id === versionId);
+          if (version) {
+            const section = sections.find(s => s.id === version.sectionId);
+            if (section) {
+              setActiveTab(section.slug);
+            }
+          }
+        }
+        // Clear highlight after 5 seconds
+        setTimeout(() => {
+          setHighlightedVersionId(null);
+          // Also clear the URL parameter
+          window.history.replaceState({}, '', window.location.pathname);
+        }, 5000);
+      }
+    }
+  }, [allVersions, sections]);
 
   useEffect(() => {
     if (sections && sections.length > 0 && !activeTab) {
@@ -707,6 +799,7 @@ export default function ReportBuilder() {
                       currentUserId={user.id}
                       totalUsers={totalUsers}
                       onMarkRead={(versionId) => markRead(versionId)}
+                      highlightedVersionId={highlightedVersionId}
                     />
                   )}
                 </div>

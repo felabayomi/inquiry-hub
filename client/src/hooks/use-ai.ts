@@ -1,13 +1,22 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
+export interface EvidenceItem {
+  chunkId: number;
+  sourceType: string;
+  sourceId?: number;
+  sectionId?: number;
+  excerpt: string;
+  authorName?: string;
+}
+
 export interface AiSummaryOutput {
   highLevelSummary: string;
   keyThemes: string[];
-  notableQuotes: { text: string; chunkId: number }[];
+  notableQuotes: { text: string; chunkId: number; sourceType?: string; sourceId?: number }[];
   openQuestions: string[];
   recommendedNextSteps: string[];
-  evidence: { chunkId: number; sourceType: string; excerpt: string; authorName?: string }[];
+  evidence: EvidenceItem[];
 }
 
 export interface AiSummary {
