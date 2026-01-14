@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { User, Key, Shield, Calendar } from "lucide-react";
+import { User, Key, Shield, Calendar, Lightbulb, Sparkles, Brain, Heart, HelpCircle } from "lucide-react";
 import { format } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -172,6 +172,56 @@ export default function Account() {
               >
                 <Key className="h-4 w-4 mr-2" /> Change Password
               </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Reaction Guide */}
+        <Card className="paper-card">
+          <CardHeader>
+            <CardTitle className="text-xl font-serif flex items-center gap-2">
+              <HelpCircle className="h-5 w-5" /> Reaction Icons Guide
+            </CardTitle>
+            <CardDescription>Learn what each reaction means in the Report Builder.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4">
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
+                  <Lightbulb className="h-5 w-5 text-yellow-500" />
+                </div>
+                <div>
+                  <p className="font-medium">Insightful</p>
+                  <p className="text-sm text-muted-foreground">This post taught me something new or offered a fresh perspective</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                  <Sparkles className="h-5 w-5 text-blue-500" />
+                </div>
+                <div>
+                  <p className="font-medium">Well Written</p>
+                  <p className="text-sm text-muted-foreground">Clear, articulate, and easy to understand</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                  <Brain className="h-5 w-5 text-purple-500" />
+                </div>
+                <div>
+                  <p className="font-medium">Makes Me Think</p>
+                  <p className="text-sm text-muted-foreground">Raises important questions or challenges my assumptions</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                  <Heart className="h-5 w-5 text-red-500" />
+                </div>
+                <div>
+                  <p className="font-medium">Love This</p>
+                  <p className="text-sm text-muted-foreground">I really appreciate this contribution</p>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
