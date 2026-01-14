@@ -274,6 +274,7 @@ export interface VersionWithEngagement {
   userId: number;
   content: string;
   justiceLensTags: string[] | null;
+  visibility: string | null;
   createdAt: string | null;
   author: { id: number; fullName: string; username: string };
   reads: { id: number; userId: number; user: { id: number; fullName: string } }[];

@@ -1,6 +1,6 @@
-# Ed.D. AI Inquiry Hub + Report Builder
+# Inquiry Hub + Report Builder
 
-A collaborative web application for the Ed.D. AI Inquiry Cohort (January–July 2026).
+A collaborative web application for inquiry cohorts to track research, share resources, and build reports together.
 
 ## Features
 - **Dashboard**: Cohort timeline and key dates.

@@ -1,8 +1,8 @@
-# Ed.D. AI Inquiry Hub + Report Builder
+# Inquiry Hub + Report Builder
 
 ## Overview
 
-A collaborative web application designed for Ed.D. AI Inquiry Cohort members (January–July 2026). The platform helps small groups (4–5 people per inquiry group, plus facilitators) track their research inquiries, share resources, manage meetings, and collaboratively build structured reports with a "Justice & Ethics" lens.
+A collaborative web application designed for inquiry cohort members to work together on research projects. The platform helps small groups (4–5 people per inquiry group, plus facilitators) track individual research inquiries, share resources, manage meetings, and collaboratively build structured reports with customizable section templates. Adaptable for any inquiry topic or research focus.
 
 Key features include:
 - **Dashboard** with cohort timeline and progress tracking

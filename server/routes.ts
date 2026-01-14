@@ -78,8 +78,9 @@ export async function registerRoutes(
     const input = api.reflections.create.input.parse(req.body);
     const reflection = await storage.createReflection(input);
     
-    // Auto-index for AI (reflections are personal/private by default)
+    // Auto-index for AI (use visibility from input, default to private)
     try {
+      const visibility = (input.visibility || "private") as "private" | "group" | "cohort";
       await indexContent(
         "reflection",
         reflection.id,
@@ -87,7 +88,7 @@ export async function registerRoutes(
         input.content,
         undefined,
         { weekOf: input.weekOf },
-        "private"
+        visibility
       );
     } catch (e) {
       console.error("Failed to index reflection for AI:", e);
@@ -108,17 +109,18 @@ export async function registerRoutes(
     const input = api.resources.create.input.parse(req.body);
     const resource = await storage.createResource({ ...input, userId: req.user.id });
     
-    // Auto-index for AI
+    // Auto-index for AI (use visibility from input, default to cohort)
     try {
-      const contentToIndex = `${input.title}\n\n${input.description || ""}\n\n${input.url}`;
+      const visibility = (input.visibility || "cohort") as "private" | "group" | "cohort";
+      const contentToIndex = `${input.title}\n\n${input.annotation || ""}\n\n${input.url}`;
       await indexContent(
         "resource",
         resource.id,
         req.user.id,
         contentToIndex,
         undefined,
-        { category: input.category, tags: input.tags },
-        "cohort"
+        { tags: input.tags },
+        visibility
       );
     } catch (e) {
       console.error("Failed to index resource for AI:", e);
@@ -196,8 +198,9 @@ export async function registerRoutes(
     const input = api.report.saveVersion.input.parse(req.body);
     const version = await storage.createReportVersion({ ...input, userId: req.user.id });
     
-    // Auto-index for AI
+    // Auto-index for AI (use visibility from input, default to cohort)
     try {
+      const visibility = (input.visibility || "cohort") as "private" | "group" | "cohort";
       await indexContent(
         "report_post",
         version.id,
@@ -205,7 +208,7 @@ export async function registerRoutes(
         input.content,
         input.sectionId,
         { justiceLensTags: input.justiceLensTags },
-        "cohort"
+        visibility
       );
     } catch (e) {
       console.error("Failed to index report version for AI:", e);
@@ -506,7 +509,7 @@ async function seedData() {
   // Seed settings
   if (!(await storage.getSetting('magic_code'))) {
     await storage.updateSetting({ key: 'magic_code', value: 'cohort2026' });
-    await storage.updateSetting({ key: 'cohort_name', value: 'Ed.D. AI Inquiry Cohort (Jan-July 2026)' });
+    await storage.updateSetting({ key: 'cohort_name', value: 'Inquiry Cohort 2026' });
   }
 
   if (!(await storage.getSetting('cohort_start'))) {

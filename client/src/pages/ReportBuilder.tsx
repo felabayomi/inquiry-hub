@@ -26,6 +26,8 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { 
   Eye, 
   MessageSquare, 
@@ -45,7 +47,10 @@ import {
   ArrowRight,
   Copy,
   ExternalLink,
-  FileText
+  FileText,
+  Lock,
+  Users,
+  Globe
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -145,6 +150,12 @@ function VersionCard({
               <span className="font-medium text-sm">{version.author.fullName}</span>
               {isUnread && (
                 <Badge variant="default" className="text-xs">New</Badge>
+              )}
+              {version.visibility && version.visibility !== "cohort" && (
+                <Badge variant="outline" className="text-xs gap-1">
+                  {version.visibility === "private" ? <Lock className="h-3 w-3" /> : <Users className="h-3 w-3" />}
+                  {version.visibility === "private" ? "Private" : "Group"}
+                </Badge>
               )}
               <span className="text-xs text-muted-foreground">
                 {version.createdAt ? format(new Date(version.createdAt), "MMM d, h:mm a") : ""}
@@ -328,14 +339,16 @@ function SectionFeed({
   const [showEditor, setShowEditor] = useState(false);
   const [content, setContent] = useState("");
   const [tags, setTags] = useState<string[]>([]);
+  const [visibility, setVisibility] = useState<"private" | "group" | "cohort">("cohort");
   const { mutate: saveVersion, isPending } = useSaveVersion();
   const { data: justiceLenses } = useJusticeLenses();
 
   const handleSave = () => {
     if (!content.trim()) return;
-    saveVersion({ sectionId, content, justiceLensTags: tags });
+    saveVersion({ sectionId, content, justiceLensTags: tags, visibility });
     setContent("");
     setTags([]);
+    setVisibility("cohort");
     setShowEditor(false);
   };
 
@@ -389,12 +402,31 @@ function SectionFeed({
               </Badge>
             ))}
           </div>
+          <div className="mb-3">
+            <Label className="text-sm mb-1 block">Who can see this?</Label>
+            <Select value={visibility} onValueChange={(v) => setVisibility(v as "private" | "group" | "cohort")}>
+              <SelectTrigger className="w-full" data-testid="select-post-visibility">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="private">
+                  <span className="flex items-center gap-2"><Lock className="h-3 w-3" /> Just me</span>
+                </SelectItem>
+                <SelectItem value="group">
+                  <span className="flex items-center gap-2"><Users className="h-3 w-3" /> My group</span>
+                </SelectItem>
+                <SelectItem value="cohort">
+                  <span className="flex items-center gap-2"><Globe className="h-3 w-3" /> Entire cohort</span>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div className="flex gap-2">
             <Button onClick={handleSave} disabled={isPending || !content.trim()} data-testid="button-submit-post">
               <Save className="h-4 w-4 mr-2" />
               {isPending ? "Saving..." : "Post"}
             </Button>
-            <Button variant="ghost" onClick={() => { setShowEditor(false); setContent(""); setTags([]); }}>
+            <Button variant="ghost" onClick={() => { setShowEditor(false); setContent(""); setTags([]); setVisibility("cohort"); }}>
               Cancel
             </Button>
           </div>

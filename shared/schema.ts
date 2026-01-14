@@ -29,6 +29,7 @@ export const reflections = pgTable("reflections", {
   inquiryId: integer("inquiry_id").references(() => inquiries.id).notNull(),
   weekOf: timestamp("week_of").notNull(),
   content: text("content").notNull(),
+  visibility: text("visibility").notNull().default("private"), // "private", "group", "cohort"
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -40,6 +41,7 @@ export const resources = pgTable("resources", {
   url: text("url").notNull(),
   tags: text("tags").array(),
   annotation: text("annotation"),
+  visibility: text("visibility").notNull().default("cohort"), // "private", "group", "cohort"
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -79,6 +81,7 @@ export const reportVersions = pgTable("report_versions", {
   userId: integer("user_id").references(() => users.id).notNull(),
   content: text("content").notNull(),
   justiceLensTags: text("justice_lens_tags").array(), // "who_benefits", "labor", etc.
+  visibility: text("visibility").notNull().default("cohort"), // "private", "group", "cohort"
   createdAt: timestamp("created_at").defaultNow(),
 });
 

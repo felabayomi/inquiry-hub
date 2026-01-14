@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { ExternalLink, Plus, Search } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ExternalLink, Plus, Search, Lock, Users, Globe } from "lucide-react";
 
 export default function Resources() {
   const { data: resources, isLoading } = useResources();
@@ -21,6 +22,7 @@ export default function Resources() {
     url: "",
     tags: "",
     annotation: "",
+    visibility: "cohort" as "private" | "group" | "cohort",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -30,12 +32,31 @@ export default function Resources() {
       url: formData.url,
       tags: formData.tags.split(",").map(t => t.trim()).filter(Boolean),
       annotation: formData.annotation,
+      visibility: formData.visibility,
     }, {
       onSuccess: () => {
         setIsOpen(false);
-        setFormData({ title: "", url: "", tags: "", annotation: "" });
+        setFormData({ title: "", url: "", tags: "", annotation: "", visibility: "cohort" });
       }
     });
+  };
+
+  const getVisibilityIcon = (visibility: string) => {
+    switch (visibility) {
+      case "private": return <Lock className="h-3 w-3" />;
+      case "group": return <Users className="h-3 w-3" />;
+      case "cohort": return <Globe className="h-3 w-3" />;
+      default: return <Globe className="h-3 w-3" />;
+    }
+  };
+
+  const getVisibilityLabel = (visibility: string) => {
+    switch (visibility) {
+      case "private": return "Just me";
+      case "group": return "My group";
+      case "cohort": return "Entire cohort";
+      default: return "Entire cohort";
+    }
   };
 
   const filteredResources = resources?.filter(r => 
@@ -96,6 +117,25 @@ export default function Resources() {
                   className="h-24"
                 />
               </div>
+              <div className="space-y-2">
+                <Label>Who can see this?</Label>
+                <Select value={formData.visibility} onValueChange={(v) => setFormData({...formData, visibility: v as "private" | "group" | "cohort"})}>
+                  <SelectTrigger data-testid="select-resource-visibility">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="private">
+                      <span className="flex items-center gap-2"><Lock className="h-3 w-3" /> Just me</span>
+                    </SelectItem>
+                    <SelectItem value="group">
+                      <span className="flex items-center gap-2"><Users className="h-3 w-3" /> My group</span>
+                    </SelectItem>
+                    <SelectItem value="cohort">
+                      <span className="flex items-center gap-2"><Globe className="h-3 w-3" /> Entire cohort</span>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <Button type="submit" className="w-full" disabled={isPending}>
                 {isPending ? "Adding..." : "Add to Library"}
               </Button>
@@ -126,8 +166,12 @@ export default function Resources() {
                   </a>
                 </CardTitle>
               </div>
-              <CardDescription className="text-xs mt-1">
+              <CardDescription className="text-xs mt-1 flex items-center gap-2">
                 Shared by {resource.user.fullName}
+                <Badge variant="outline" className="text-xs gap-1">
+                  {getVisibilityIcon(resource.visibility || "cohort")}
+                  {getVisibilityLabel(resource.visibility || "cohort")}
+                </Badge>
               </CardDescription>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col justify-between">

@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, ExternalLink, Calendar, Video, Clock, FileText, Trash2, Pencil, GripVertical, BookOpen, Scale, Users, Shield, Key, Bot, Loader2 } from "lucide-react";
+import { Plus, ExternalLink, Calendar, Video, Clock, FileText, Trash2, Pencil, ChevronUp, ChevronDown, BookOpen, Scale, Users, Shield, Key, Bot, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -116,6 +116,23 @@ export default function Settings() {
 
   const handleDeleteSection = (id: number) => {
     deleteSection(id);
+  };
+
+  const handleMoveSection = (sectionId: number, direction: 'up' | 'down') => {
+    if (!sections) return;
+    const sortedSections = [...sections].sort((a, b) => a.orderIndex - b.orderIndex);
+    const currentIndex = sortedSections.findIndex(s => s.id === sectionId);
+    if (currentIndex === -1) return;
+    
+    const swapIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (swapIndex < 0 || swapIndex >= sortedSections.length) return;
+    
+    const currentSection = sortedSections[currentIndex];
+    const swapSection = sortedSections[swapIndex];
+    
+    // Swap order indices
+    updateSection({ id: currentSection.id, data: { orderIndex: swapSection.orderIndex } });
+    updateSection({ id: swapSection.id, data: { orderIndex: currentSection.orderIndex } });
   };
 
   const handleCreateLens = (e: React.FormEvent) => {
@@ -345,10 +362,31 @@ export default function Settings() {
                 {sections?.length === 0 ? (
                   <p className="text-sm text-muted-foreground italic">No sections created yet.</p>
                 ) : (
-                  sections?.sort((a,b) => a.orderIndex - b.orderIndex).map((section) => (
+                  sections?.sort((a,b) => a.orderIndex - b.orderIndex).map((section, index, arr) => (
                     <div key={section.id} className="flex items-center justify-between p-4 border rounded-lg gap-4 bg-white" data-testid={`section-item-${section.id}`}>
                       <div className="flex items-center gap-3 flex-1">
-                        <GripVertical className="h-4 w-4 text-slate-300" />
+                        <div className="flex flex-col">
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            className="h-5 w-5"
+                            onClick={() => handleMoveSection(section.id, 'up')}
+                            disabled={index === 0}
+                            data-testid={`button-move-up-section-${section.id}`}
+                          >
+                            <ChevronUp className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            className="h-5 w-5"
+                            onClick={() => handleMoveSection(section.id, 'down')}
+                            disabled={index === arr.length - 1}
+                            data-testid={`button-move-down-section-${section.id}`}
+                          >
+                            <ChevronDown className="h-3 w-3" />
+                          </Button>
+                        </div>
                         <div className="flex-1">
                           {editingSection === section.id ? (
                             <Input 
@@ -495,7 +533,7 @@ export default function Settings() {
                     .map((lens) => (
                     <div key={lens.id} className="flex items-center justify-between p-4 border rounded-lg gap-4 bg-white" data-testid={`lens-item-${lens.id}`}>
                       <div className="flex items-center gap-3 flex-1">
-                        <GripVertical className="h-4 w-4 text-slate-300" />
+                        <Scale className="h-4 w-4 text-primary" />
                         <div className="flex-1">
                           <p className="font-medium text-slate-900">{lens.label}</p>
                           <p className="text-xs text-muted-foreground">{lens.slug}</p>
