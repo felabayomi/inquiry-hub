@@ -22,7 +22,6 @@ import {
   FileText,
   Clock,
   Loader2,
-  Printer,
   Copy
 } from "lucide-react";
 import { format } from "date-fns";
@@ -69,59 +68,6 @@ function SummaryCard({ summary, title, generatedAt }: { summary: AiSummaryOutput
     });
   };
 
-  const handlePrint = () => {
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>${escapeHtml(title)}</title>
-          <style>
-            body { font-family: 'Georgia', serif; line-height: 1.6; color: #1a1a1a; max-width: 800px; margin: 0 auto; padding: 40px; }
-            h1 { font-size: 24px; margin-bottom: 8px; }
-            h2 { font-size: 18px; margin-top: 24px; margin-bottom: 12px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
-            .generated-at { font-size: 12px; color: #888; margin-bottom: 24px; }
-            p { margin-bottom: 12px; }
-            ul { margin-bottom: 12px; padding-left: 24px; }
-            li { margin-bottom: 6px; }
-            blockquote { border-left: 3px solid #666; padding-left: 16px; margin: 16px 0; font-style: italic; color: #555; }
-            .theme-tag { display: inline-block; background: #f0f0f0; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-right: 8px; margin-bottom: 4px; }
-            @page { margin: 1in; }
-          </style>
-        </head>
-        <body>
-          <h1>${escapeHtml(title)}</h1>
-          <div class="generated-at">Generated: ${escapeHtml(date)}</div>
-          <h2>Summary</h2>
-          <p>${escapeHtml(summary.highLevelSummary)}</p>
-          ${summary.keyThemes.length > 0 ? `<h2>Key Themes</h2><div>${summary.keyThemes.map(t => `<span class="theme-tag">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
-          ${summary.notableQuotes.length > 0 ? `<h2>Notable Excerpts</h2>${summary.notableQuotes.map(q => `<blockquote>"${escapeHtml(q.text)}"</blockquote>`).join('')}` : ''}
-          ${summary.openQuestions.length > 0 ? `<h2>Open Questions</h2><ul>${summary.openQuestions.map(q => `<li>${escapeHtml(q)}</li>`).join('')}</ul>` : ''}
-          ${summary.recommendedNextSteps.length > 0 ? `<h2>Recommended Next Steps</h2><ul>${summary.recommendedNextSteps.map((s, i) => `<li><strong>${i + 1}.</strong> ${escapeHtml(s)}</li>`).join('')}</ul>` : ''}
-          ${summary.evidence.length > 0 ? `<h2>Supporting Evidence</h2>${summary.evidence.slice(0, 5).map(ev => `<p><strong>${escapeHtml(ev.authorName || 'Unknown')}</strong> (${escapeHtml(ev.sourceType)})<br/><em>${escapeHtml(ev.excerpt)}</em></p>`).join('')}` : ''}
-        </body>
-      </html>
-    `;
-
-    const iframe = document.createElement('iframe');
-    iframe.style.position = 'absolute';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
-    iframe.style.border = 'none';
-    document.body.appendChild(iframe);
-
-    const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-    if (iframeDoc) {
-      iframeDoc.open();
-      iframeDoc.write(htmlContent);
-      iframeDoc.close();
-      
-      setTimeout(() => {
-        iframe.contentWindow?.print();
-        setTimeout(() => document.body.removeChild(iframe), 1000);
-      }, 250);
-    }
-  };
-
   return (
     <Card className="paper-card">
       <CardHeader className="flex flex-row items-start justify-between gap-4">
@@ -129,26 +75,15 @@ function SummaryCard({ summary, title, generatedAt }: { summary: AiSummaryOutput
           <Sparkles className="h-5 w-5 text-primary" />
           {title}
         </CardTitle>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleCopyToClipboard}
-            data-testid="button-copy-summary"
-          >
-            <Copy className="h-4 w-4 mr-2" />
-            Copy
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handlePrint}
-            data-testid="button-print-summary"
-          >
-            <Printer className="h-4 w-4 mr-2" />
-            Print
-          </Button>
-        </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleCopyToClipboard}
+          data-testid="button-copy-summary"
+        >
+          <Copy className="h-4 w-4 mr-2" />
+          Copy to Clipboard
+        </Button>
       </CardHeader>
       <CardContent className="space-y-6">
         <div>
