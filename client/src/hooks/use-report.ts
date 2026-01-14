@@ -83,6 +83,7 @@ export function useSaveVersion() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: [api.report.latestVersions.path, variables.sectionId] });
       queryClient.invalidateQueries({ queryKey: [api.report.history.path, variables.sectionId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/report/versions/engagement'] });
       toast({ title: "Draft Saved", description: "Your changes have been recorded." });
     },
   });
@@ -262,6 +263,92 @@ export function useDeleteJusticeLens() {
     },
     onError: () => {
       toast({ title: "Failed to delete justice lens", variant: "destructive" });
+    },
+  });
+}
+
+// === ENGAGEMENT: READS & REACTIONS ===
+export interface VersionWithEngagement {
+  id: number;
+  sectionId: number;
+  userId: number;
+  content: string;
+  justiceLensTags: string[] | null;
+  createdAt: string | null;
+  author: { id: number; fullName: string; username: string };
+  reads: { id: number; userId: number; user: { id: number; fullName: string } }[];
+  reactions: { id: number; userId: number; reactionType: string; user: { id: number; fullName: string } }[];
+}
+
+export function useAllVersionsWithEngagement() {
+  return useQuery<VersionWithEngagement[]>({
+    queryKey: ['/api/report/versions/engagement'],
+    queryFn: async () => {
+      const res = await fetch('/api/report/versions/engagement', { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch versions with engagement");
+      return await res.json();
+    },
+  });
+}
+
+export function useMyReadVersionIds() {
+  return useQuery<number[]>({
+    queryKey: ['/api/report/my-reads'],
+    queryFn: async () => {
+      const res = await fetch('/api/report/my-reads', { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch my reads");
+      return await res.json();
+    },
+  });
+}
+
+export function useMarkVersionRead() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (versionId: number) => {
+      const res = await fetch(`/api/report/versions/${versionId}/read`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to mark as read");
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/report/versions/engagement'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/report/my-reads'] });
+    },
+  });
+}
+
+export function useToggleReaction() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ versionId, reactionType }: { versionId: number; reactionType: string }) => {
+      const res = await fetch(`/api/report/versions/${versionId}/reactions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reactionType }),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to toggle reaction");
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/report/versions/engagement'] });
+    },
+  });
+}
+
+export function useTotalUsersCount() {
+  return useQuery<number>({
+    queryKey: ['/api/cohort/user-count'],
+    queryFn: async () => {
+      const res = await fetch('/api/cohort/user-count', { credentials: "include" });
+      if (!res.ok) return 5;
+      const data = await res.json();
+      return data.count || 5;
     },
   });
 }

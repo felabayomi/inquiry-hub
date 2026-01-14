@@ -212,6 +212,13 @@ export async function registerRoutes(
     res.json(reactions);
   });
 
+  // === COHORT INFO ===
+  app.get('/api/cohort/user-count', async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const users = await storage.getAllUsers();
+    res.json({ count: users.length });
+  });
+
   // === SETTINGS ===
   app.get(api.settings.list.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
