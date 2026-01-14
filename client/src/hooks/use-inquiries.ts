@@ -65,3 +65,57 @@ export function useCreateReflection() {
     },
   });
 }
+
+export function useDeleteReflection() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/reflections/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to delete reflection");
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.inquiries.get.path] });
+      toast({ title: "Deleted", description: "Reflection removed." });
+    },
+  });
+}
+
+// Admin hooks
+export function useAllInquiries() {
+  return useQuery({
+    queryKey: [api.inquiries.listAll.path],
+    queryFn: async () => {
+      const res = await fetch(api.inquiries.listAll.path, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch inquiries");
+      return await res.json();
+    },
+  });
+}
+
+export function useAddInquiryComment() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (data: { inquiryId: number; content: string }) => {
+      const res = await fetch(api.inquiries.addComment.path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to add comment");
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.inquiries.listAll.path] });
+      toast({ title: "Feedback Sent", description: "Your comment has been added." });
+    },
+  });
+}

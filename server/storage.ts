@@ -22,6 +22,7 @@ export interface IStorage {
   getInquiryByUserId(userId: number): Promise<Inquiry | undefined>;
   createOrUpdateInquiry(inquiry: InsertInquiry): Promise<Inquiry>;
   getReflections(inquiryId: number): Promise<Reflection[]>;
+  getReflectionById(id: number): Promise<Reflection | undefined>;
   createReflection(reflection: InsertReflection): Promise<Reflection>;
   deleteReflection(id: number): Promise<void>;
 
@@ -109,6 +110,11 @@ export class DatabaseStorage implements IStorage {
   async createReflection(reflection: InsertReflection): Promise<Reflection> {
     const [newReflection] = await db.insert(reflections).values(reflection).returning();
     return newReflection;
+  }
+
+  async getReflectionById(id: number): Promise<Reflection | undefined> {
+    const [reflection] = await db.select().from(reflections).where(eq(reflections.id, id));
+    return reflection;
   }
 
   async deleteReflection(id: number): Promise<void> {

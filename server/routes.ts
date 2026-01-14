@@ -32,7 +32,21 @@ export async function registerRoutes(
 
   app.delete('/api/reflections/:id', async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    await storage.deleteReflection(Number(req.params.id));
+    
+    const reflectionId = Number(req.params.id);
+    const reflection = await storage.getReflectionById(reflectionId);
+    
+    if (!reflection) {
+      return res.status(404).json({ message: "Reflection not found" });
+    }
+    
+    // Verify ownership: check if the reflection's inquiry belongs to this user
+    const inquiry = await storage.getInquiryByUserId(req.user.id);
+    if (!inquiry || reflection.inquiryId !== inquiry.id) {
+      return res.status(403).json({ message: "Not authorized to delete this reflection" });
+    }
+    
+    await storage.deleteReflection(reflectionId);
     res.json({ success: true });
   });
 

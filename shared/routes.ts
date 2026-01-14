@@ -2,8 +2,8 @@ import { z } from 'zod';
 import { 
   insertUserSchema, insertInquirySchema, insertReflectionSchema, 
   insertResourceSchema, insertMeetingSchema, insertReportVersionSchema, 
-  insertCommentSchema, insertSettingSchema,
-  users, inquiries, reflections, resources, meetings, reportSections, reportVersions, comments, appSettings 
+  insertCommentSchema, insertSettingSchema, insertInquiryCommentSchema,
+  users, inquiries, reflections, resources, meetings, reportSections, reportVersions, comments, appSettings, inquiryComments
 } from './schema';
 
 // Shared error schemas

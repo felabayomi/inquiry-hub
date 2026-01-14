@@ -10,7 +10,8 @@ import {
   User,
   Home,
   Menu,
-  X
+  X,
+  Users
 } from "lucide-react";
 import { useUser, useLogout } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
@@ -32,6 +33,7 @@ export function Sidebar() {
   ];
 
   if (user?.role === "admin") {
+    navItems.push({ href: "/cohort", label: "Cohort Overview", icon: Users });
     navItems.push({ href: "/settings", label: "Settings", icon: Settings });
   }
 

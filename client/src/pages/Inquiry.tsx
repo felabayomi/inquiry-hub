@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { PageLayout } from "@/components/layout/PageLayout";
-import { useMyInquiry, useUpsertInquiry, useCreateReflection } from "@/hooks/use-inquiries";
+import { useMyInquiry, useUpsertInquiry, useCreateReflection, useDeleteReflection } from "@/hooks/use-inquiries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,12 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
-import { PenLine, Save } from "lucide-react";
+import { PenLine, Save, Trash2 } from "lucide-react";
 
 export default function Inquiry() {
   const { data: inquiry, isLoading } = useMyInquiry();
   const { mutate: saveInquiry, isPending: isSaving } = useUpsertInquiry();
   const { mutate: addReflection, isPending: isAddingReflection } = useCreateReflection();
+  const { mutate: deleteReflection } = useDeleteReflection();
 
   const [question, setQuestion] = useState("");
   const [pathway, setPathway] = useState("");
@@ -101,12 +102,25 @@ export default function Inquiry() {
             <h2 className="text-xl font-serif font-bold">Reflections Journal</h2>
             {inquiry?.reflections && inquiry.reflections.length > 0 ? (
               inquiry.reflections.map((ref) => (
-                <Card key={ref.id} className="paper-card hover:shadow-md transition-shadow">
+                <Card key={ref.id} className="paper-card hover:shadow-md transition-shadow group">
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground font-mono bg-slate-100 px-2 py-1 rounded">
                         Week of {format(new Date(ref.weekOf), "MMM d")}
                       </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                        onClick={() => {
+                          if (confirm("Delete this reflection?")) {
+                            deleteReflection(ref.id);
+                          }
+                        }}
+                        data-testid={`button-delete-reflection-${ref.id}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </CardHeader>
                   <CardContent>
