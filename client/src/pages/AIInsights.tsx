@@ -22,7 +22,8 @@ import {
   FileText,
   Clock,
   Loader2,
-  Printer
+  Printer,
+  Copy
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -33,86 +34,92 @@ function escapeHtml(text: string): string {
 }
 
 function SummaryCard({ summary, title, generatedAt }: { summary: AiSummaryOutput; title: string; generatedAt?: string }) {
-  const handlePrint = () => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      alert('Please allow popups to print this content');
-      return;
+  const date = generatedAt 
+    ? new Date(generatedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    : new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  const handleCopyToClipboard = () => {
+    let text = `${title}\nGenerated: ${date}\n\n`;
+    text += `SUMMARY\n${summary.highLevelSummary}\n\n`;
+    
+    if (summary.keyThemes.length > 0) {
+      text += `KEY THEMES\n${summary.keyThemes.join(', ')}\n\n`;
+    }
+    
+    if (summary.notableQuotes.length > 0) {
+      text += `NOTABLE EXCERPTS\n${summary.notableQuotes.map(q => `"${q.text}"`).join('\n')}\n\n`;
+    }
+    
+    if (summary.openQuestions.length > 0) {
+      text += `OPEN QUESTIONS\n${summary.openQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}\n\n`;
+    }
+    
+    if (summary.recommendedNextSteps.length > 0) {
+      text += `RECOMMENDED NEXT STEPS\n${summary.recommendedNextSteps.map((s, i) => `${i + 1}. ${s}`).join('\n')}\n\n`;
+    }
+    
+    if (summary.evidence.length > 0) {
+      text += `SUPPORTING EVIDENCE\n${summary.evidence.slice(0, 5).map(ev => `${ev.authorName || 'Unknown'} (${ev.sourceType}): ${ev.excerpt}`).join('\n')}\n`;
     }
 
-    const styles = `
-      <style>
-        body { 
-          font-family: 'Georgia', serif;
-          line-height: 1.6;
-          color: #1a1a1a;
-          max-width: 800px;
-          margin: 0 auto;
-          padding: 40px;
-        }
-        h1 { font-size: 24px; margin-bottom: 8px; }
-        h2 { font-size: 18px; margin-top: 24px; margin-bottom: 12px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
-        .generated-at { font-size: 12px; color: #888; margin-bottom: 24px; }
-        p { margin-bottom: 12px; }
-        ul { margin-bottom: 12px; padding-left: 24px; }
-        li { margin-bottom: 6px; }
-        blockquote { border-left: 3px solid #666; padding-left: 16px; margin: 16px 0; font-style: italic; color: #555; }
-        .theme-tag { display: inline-block; background: #f0f0f0; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-right: 8px; margin-bottom: 4px; }
-        @page { margin: 1in; }
-      </style>
-    `;
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Summary copied to clipboard! You can paste it into any document.');
+    }).catch(() => {
+      alert('Unable to copy. Please try selecting and copying the text manually.');
+    });
+  };
 
-    const date = generatedAt 
-      ? new Date(generatedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
-      : new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-
-    printWindow.document.write(`
+  const handlePrint = () => {
+    const htmlContent = `
       <!DOCTYPE html>
       <html>
         <head>
           <title>${escapeHtml(title)}</title>
-          ${styles}
+          <style>
+            body { font-family: 'Georgia', serif; line-height: 1.6; color: #1a1a1a; max-width: 800px; margin: 0 auto; padding: 40px; }
+            h1 { font-size: 24px; margin-bottom: 8px; }
+            h2 { font-size: 18px; margin-top: 24px; margin-bottom: 12px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+            .generated-at { font-size: 12px; color: #888; margin-bottom: 24px; }
+            p { margin-bottom: 12px; }
+            ul { margin-bottom: 12px; padding-left: 24px; }
+            li { margin-bottom: 6px; }
+            blockquote { border-left: 3px solid #666; padding-left: 16px; margin: 16px 0; font-style: italic; color: #555; }
+            .theme-tag { display: inline-block; background: #f0f0f0; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-right: 8px; margin-bottom: 4px; }
+            @page { margin: 1in; }
+          </style>
         </head>
         <body>
           <h1>${escapeHtml(title)}</h1>
           <div class="generated-at">Generated: ${escapeHtml(date)}</div>
-          
           <h2>Summary</h2>
           <p>${escapeHtml(summary.highLevelSummary)}</p>
-          
-          ${summary.keyThemes.length > 0 ? `
-            <h2>Key Themes</h2>
-            <div>${summary.keyThemes.map(t => `<span class="theme-tag">${escapeHtml(t)}</span>`).join('')}</div>
-          ` : ''}
-          
-          ${summary.notableQuotes.length > 0 ? `
-            <h2>Notable Excerpts</h2>
-            ${summary.notableQuotes.map(q => `<blockquote>"${escapeHtml(q.text)}"</blockquote>`).join('')}
-          ` : ''}
-          
-          ${summary.openQuestions.length > 0 ? `
-            <h2>Open Questions</h2>
-            <ul>${summary.openQuestions.map(q => `<li>${escapeHtml(q)}</li>`).join('')}</ul>
-          ` : ''}
-          
-          ${summary.recommendedNextSteps.length > 0 ? `
-            <h2>Recommended Next Steps</h2>
-            <ul>${summary.recommendedNextSteps.map((s, i) => `<li><strong>${i + 1}.</strong> ${escapeHtml(s)}</li>`).join('')}</ul>
-          ` : ''}
-          
-          ${summary.evidence.length > 0 ? `
-            <h2>Supporting Evidence</h2>
-            ${summary.evidence.slice(0, 5).map(ev => `
-              <p><strong>${escapeHtml(ev.authorName || 'Unknown')}</strong> (${escapeHtml(ev.sourceType)})<br/>
-              <em>${escapeHtml(ev.excerpt)}</em></p>
-            `).join('')}
-          ` : ''}
+          ${summary.keyThemes.length > 0 ? `<h2>Key Themes</h2><div>${summary.keyThemes.map(t => `<span class="theme-tag">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+          ${summary.notableQuotes.length > 0 ? `<h2>Notable Excerpts</h2>${summary.notableQuotes.map(q => `<blockquote>"${escapeHtml(q.text)}"</blockquote>`).join('')}` : ''}
+          ${summary.openQuestions.length > 0 ? `<h2>Open Questions</h2><ul>${summary.openQuestions.map(q => `<li>${escapeHtml(q)}</li>`).join('')}</ul>` : ''}
+          ${summary.recommendedNextSteps.length > 0 ? `<h2>Recommended Next Steps</h2><ul>${summary.recommendedNextSteps.map((s, i) => `<li><strong>${i + 1}.</strong> ${escapeHtml(s)}</li>`).join('')}</ul>` : ''}
+          ${summary.evidence.length > 0 ? `<h2>Supporting Evidence</h2>${summary.evidence.slice(0, 5).map(ev => `<p><strong>${escapeHtml(ev.authorName || 'Unknown')}</strong> (${escapeHtml(ev.sourceType)})<br/><em>${escapeHtml(ev.excerpt)}</em></p>`).join('')}` : ''}
         </body>
       </html>
-    `);
+    `;
 
-    printWindow.document.close();
-    setTimeout(() => printWindow.print(), 250);
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'absolute';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = 'none';
+    document.body.appendChild(iframe);
+
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (iframeDoc) {
+      iframeDoc.open();
+      iframeDoc.write(htmlContent);
+      iframeDoc.close();
+      
+      setTimeout(() => {
+        iframe.contentWindow?.print();
+        setTimeout(() => document.body.removeChild(iframe), 1000);
+      }, 250);
+    }
   };
 
   return (
@@ -122,15 +129,26 @@ function SummaryCard({ summary, title, generatedAt }: { summary: AiSummaryOutput
           <Sparkles className="h-5 w-5 text-primary" />
           {title}
         </CardTitle>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={handlePrint}
-          data-testid="button-print-summary"
-        >
-          <Printer className="h-4 w-4 mr-2" />
-          Print / Save PDF
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleCopyToClipboard}
+            data-testid="button-copy-summary"
+          >
+            <Copy className="h-4 w-4 mr-2" />
+            Copy
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handlePrint}
+            data-testid="button-print-summary"
+          >
+            <Printer className="h-4 w-4 mr-2" />
+            Print
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
         <div>
@@ -320,46 +338,23 @@ export default function AIInsights() {
                     <div className="space-y-4 pr-4">
                       {pastSummaries.map((summary) => {
                         const content = summary.content as AiSummaryOutput;
-                        const handlePrintPast = () => {
-                          const printWindow = window.open('', '_blank');
-                          if (!printWindow) return;
-                          
+                        const handleCopyPast = () => {
                           const typeLabel = summary.type === "my_journey" ? "Journey Summary" : 
                                           summary.type === "section_draft" ? "Section Draft" : "Weekly Digest";
                           const date = format(new Date(summary.generatedAt), "MMMM d, yyyy");
                           
-                          printWindow.document.write(`
-                            <!DOCTYPE html>
-                            <html>
-                              <head>
-                                <title>${escapeHtml(typeLabel)} - ${escapeHtml(date)}</title>
-                                <style>
-                                  body { font-family: 'Georgia', serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 40px; }
-                                  h1 { font-size: 24px; margin-bottom: 8px; }
-                                  h2 { font-size: 18px; margin-top: 24px; margin-bottom: 12px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
-                                  .generated-at { font-size: 12px; color: #888; margin-bottom: 24px; }
-                                  p { margin-bottom: 12px; }
-                                  ul { padding-left: 24px; }
-                                  li { margin-bottom: 6px; }
-                                  blockquote { border-left: 3px solid #666; padding-left: 16px; margin: 16px 0; font-style: italic; color: #555; }
-                                  .theme-tag { display: inline-block; background: #f0f0f0; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-right: 8px; }
-                                  @page { margin: 1in; }
-                                </style>
-                              </head>
-                              <body>
-                                <h1>${escapeHtml(typeLabel)}</h1>
-                                <div class="generated-at">Generated: ${escapeHtml(date)}</div>
-                                <h2>Summary</h2>
-                                <p>${escapeHtml(content.highLevelSummary)}</p>
-                                ${content.keyThemes.length > 0 ? `<h2>Key Themes</h2><div>${content.keyThemes.map(t => `<span class="theme-tag">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
-                                ${content.notableQuotes.length > 0 ? `<h2>Notable Excerpts</h2>${content.notableQuotes.map(q => `<blockquote>"${escapeHtml(q.text)}"</blockquote>`).join('')}` : ''}
-                                ${content.openQuestions.length > 0 ? `<h2>Open Questions</h2><ul>${content.openQuestions.map(q => `<li>${escapeHtml(q)}</li>`).join('')}</ul>` : ''}
-                                ${content.recommendedNextSteps.length > 0 ? `<h2>Recommended Next Steps</h2><ul>${content.recommendedNextSteps.map((s, i) => `<li><strong>${i + 1}.</strong> ${escapeHtml(s)}</li>`).join('')}</ul>` : ''}
-                              </body>
-                            </html>
-                          `);
-                          printWindow.document.close();
-                          setTimeout(() => printWindow.print(), 250);
+                          let text = `${typeLabel}\nGenerated: ${date}\n\n`;
+                          text += `SUMMARY\n${content.highLevelSummary}\n\n`;
+                          if (content.keyThemes.length > 0) text += `KEY THEMES\n${content.keyThemes.join(', ')}\n\n`;
+                          if (content.notableQuotes.length > 0) text += `NOTABLE EXCERPTS\n${content.notableQuotes.map(q => `"${q.text}"`).join('\n')}\n\n`;
+                          if (content.openQuestions.length > 0) text += `OPEN QUESTIONS\n${content.openQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}\n\n`;
+                          if (content.recommendedNextSteps.length > 0) text += `RECOMMENDED NEXT STEPS\n${content.recommendedNextSteps.map((s, i) => `${i + 1}. ${s}`).join('\n')}\n`;
+                          
+                          navigator.clipboard.writeText(text).then(() => {
+                            alert('Summary copied to clipboard!');
+                          }).catch(() => {
+                            alert('Unable to copy. Please try manually.');
+                          });
                         };
                         
                         return (
@@ -378,11 +373,11 @@ export default function AIInsights() {
                                 <Button 
                                   variant="ghost" 
                                   size="sm" 
-                                  onClick={handlePrintPast}
+                                  onClick={handleCopyPast}
                                   className="h-7 w-7 p-0"
-                                  data-testid={`button-print-past-${summary.id}`}
+                                  data-testid={`button-copy-past-${summary.id}`}
                                 >
-                                  <Printer className="h-3.5 w-3.5" />
+                                  <Copy className="h-3.5 w-3.5" />
                                 </Button>
                               </div>
                             </div>

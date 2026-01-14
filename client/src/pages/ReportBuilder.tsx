@@ -43,7 +43,8 @@ import {
   Quote,
   HelpCircle,
   ArrowRight,
-  Printer
+  Printer,
+  Copy
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -408,80 +409,96 @@ function AiSynthesisDialog({
   isLoading: boolean;
   sectionTitle: string;
 }) {
-  const handlePrint = () => {
+  const handleCopyToClipboard = () => {
     if (!synthesis) return;
-
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      alert('Please allow popups to print this content');
-      return;
-    }
-
-    const styles = `
-      <style>
-        body { 
-          font-family: 'Georgia', serif;
-          line-height: 1.6;
-          color: #1a1a1a;
-          max-width: 800px;
-          margin: 0 auto;
-          padding: 40px;
-        }
-        h1 { font-size: 24px; margin-bottom: 8px; }
-        h2 { font-size: 18px; margin-top: 24px; margin-bottom: 12px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
-        .generated-at { font-size: 12px; color: #888; margin-bottom: 24px; }
-        p { margin-bottom: 12px; }
-        ul { margin-bottom: 12px; padding-left: 24px; }
-        li { margin-bottom: 6px; }
-        blockquote { border-left: 3px solid #666; padding-left: 16px; margin: 16px 0; font-style: italic; color: #555; }
-        .theme-tag { display: inline-block; background: #f0f0f0; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-right: 8px; margin-bottom: 4px; }
-        @page { margin: 1in; }
-      </style>
-    `;
 
     const date = new Date().toLocaleDateString('en-US', {
       year: 'numeric', month: 'long', day: 'numeric'
     });
 
-    printWindow.document.write(`
+    let text = `AI Synthesis: ${sectionTitle}\nGenerated: ${date}\n\n`;
+    text += `SUMMARY\n${synthesis.highLevelSummary}\n\n`;
+    
+    if (synthesis.keyThemes.length > 0) {
+      text += `KEY THEMES\n${synthesis.keyThemes.join(', ')}\n\n`;
+    }
+    
+    if (synthesis.notableQuotes.length > 0) {
+      text += `NOTABLE QUOTES\n${synthesis.notableQuotes.map(q => `"${q.text}"`).join('\n')}\n\n`;
+    }
+    
+    if (synthesis.openQuestions.length > 0) {
+      text += `OPEN QUESTIONS\n${synthesis.openQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}\n\n`;
+    }
+    
+    if (synthesis.recommendedNextSteps.length > 0) {
+      text += `RECOMMENDED NEXT STEPS\n${synthesis.recommendedNextSteps.map((s, i) => `${i + 1}. ${s}`).join('\n')}\n`;
+    }
+
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Summary copied to clipboard! You can paste it into any document.');
+    }).catch(() => {
+      alert('Unable to copy. Please try selecting and copying the text manually.');
+    });
+  };
+
+  const handlePrint = () => {
+    if (!synthesis) return;
+
+    const date = new Date().toLocaleDateString('en-US', {
+      year: 'numeric', month: 'long', day: 'numeric'
+    });
+
+    const htmlContent = `
       <!DOCTYPE html>
       <html>
         <head>
           <title>AI Synthesis: ${escapeHtml(sectionTitle)}</title>
-          ${styles}
+          <style>
+            body { font-family: 'Georgia', serif; line-height: 1.6; color: #1a1a1a; max-width: 800px; margin: 0 auto; padding: 40px; }
+            h1 { font-size: 24px; margin-bottom: 8px; }
+            h2 { font-size: 18px; margin-top: 24px; margin-bottom: 12px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+            .generated-at { font-size: 12px; color: #888; margin-bottom: 24px; }
+            p { margin-bottom: 12px; }
+            ul { margin-bottom: 12px; padding-left: 24px; }
+            li { margin-bottom: 6px; }
+            blockquote { border-left: 3px solid #666; padding-left: 16px; margin: 16px 0; font-style: italic; color: #555; }
+            .theme-tag { display: inline-block; background: #f0f0f0; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-right: 8px; margin-bottom: 4px; }
+            @page { margin: 1in; }
+          </style>
         </head>
         <body>
           <h1>AI Synthesis: ${escapeHtml(sectionTitle)}</h1>
           <div class="generated-at">Generated: ${escapeHtml(date)}</div>
-          
           <h2>Summary</h2>
           <p>${escapeHtml(synthesis.highLevelSummary)}</p>
-          
-          ${synthesis.keyThemes.length > 0 ? `
-            <h2>Key Themes</h2>
-            <div>${synthesis.keyThemes.map(t => `<span class="theme-tag">${escapeHtml(t)}</span>`).join('')}</div>
-          ` : ''}
-          
-          ${synthesis.notableQuotes.length > 0 ? `
-            <h2>Notable Quotes</h2>
-            ${synthesis.notableQuotes.map(q => `<blockquote>"${escapeHtml(q.text)}"</blockquote>`).join('')}
-          ` : ''}
-          
-          ${synthesis.openQuestions.length > 0 ? `
-            <h2>Open Questions</h2>
-            <ul>${synthesis.openQuestions.map(q => `<li>${escapeHtml(q)}</li>`).join('')}</ul>
-          ` : ''}
-          
-          ${synthesis.recommendedNextSteps.length > 0 ? `
-            <h2>Recommended Next Steps</h2>
-            <ul>${synthesis.recommendedNextSteps.map((s, i) => `<li><strong>${i + 1}.</strong> ${escapeHtml(s)}</li>`).join('')}</ul>
-          ` : ''}
+          ${synthesis.keyThemes.length > 0 ? `<h2>Key Themes</h2><div>${synthesis.keyThemes.map(t => `<span class="theme-tag">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+          ${synthesis.notableQuotes.length > 0 ? `<h2>Notable Quotes</h2>${synthesis.notableQuotes.map(q => `<blockquote>"${escapeHtml(q.text)}"</blockquote>`).join('')}` : ''}
+          ${synthesis.openQuestions.length > 0 ? `<h2>Open Questions</h2><ul>${synthesis.openQuestions.map(q => `<li>${escapeHtml(q)}</li>`).join('')}</ul>` : ''}
+          ${synthesis.recommendedNextSteps.length > 0 ? `<h2>Recommended Next Steps</h2><ul>${synthesis.recommendedNextSteps.map((s, i) => `<li><strong>${i + 1}.</strong> ${escapeHtml(s)}</li>`).join('')}</ul>` : ''}
         </body>
       </html>
-    `);
+    `;
 
-    printWindow.document.close();
-    setTimeout(() => printWindow.print(), 250);
+    // Try iframe approach first (works better in embedded environments)
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'absolute';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = 'none';
+    document.body.appendChild(iframe);
+
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (iframeDoc) {
+      iframeDoc.open();
+      iframeDoc.write(htmlContent);
+      iframeDoc.close();
+      
+      setTimeout(() => {
+        iframe.contentWindow?.print();
+        setTimeout(() => document.body.removeChild(iframe), 1000);
+      }, 250);
+    }
   };
 
   return (
@@ -498,7 +515,16 @@ function AiSynthesisDialog({
         </DialogHeader>
 
         {!isLoading && synthesis && (
-          <div className="flex justify-end mb-2">
+          <div className="flex justify-end gap-2 mb-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleCopyToClipboard}
+              data-testid="button-copy-synthesis"
+            >
+              <Copy className="h-4 w-4 mr-2" />
+              Copy Text
+            </Button>
             <Button 
               variant="outline" 
               size="sm" 
@@ -506,7 +532,7 @@ function AiSynthesisDialog({
               data-testid="button-print-synthesis"
             >
               <Printer className="h-4 w-4 mr-2" />
-              Print / Save PDF
+              Print
             </Button>
           </div>
         )}
