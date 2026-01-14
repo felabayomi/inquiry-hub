@@ -169,6 +169,49 @@ export async function registerRoutes(
     res.status(201).json(comment);
   });
 
+  // === POST READS & REACTIONS ===
+  app.get('/api/report/versions/engagement', async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const versions = await storage.getAllVersionsWithEngagement();
+    res.json(versions);
+  });
+
+  app.get('/api/report/my-reads', async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const readIds = await storage.getUserReadVersionIds(req.user.id);
+    res.json(readIds);
+  });
+
+  app.post('/api/report/versions/:id/read', async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const versionId = Number(req.params.id);
+    const read = await storage.markVersionRead(versionId, req.user.id);
+    res.json(read);
+  });
+
+  app.get('/api/report/versions/:id/reads', async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const versionId = Number(req.params.id);
+    const reads = await storage.getVersionReads(versionId);
+    res.json(reads);
+  });
+
+  app.post('/api/report/versions/:id/reactions', async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const versionId = Number(req.params.id);
+    const schema = z.object({ reactionType: z.string() });
+    const { reactionType } = schema.parse(req.body);
+    const result = await storage.toggleReaction(versionId, req.user.id, reactionType);
+    res.json(result);
+  });
+
+  app.get('/api/report/versions/:id/reactions', async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const versionId = Number(req.params.id);
+    const reactions = await storage.getVersionReactions(versionId);
+    res.json(reactions);
+  });
+
   // === SETTINGS ===
   app.get(api.settings.list.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
