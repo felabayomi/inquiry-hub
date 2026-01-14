@@ -104,6 +104,23 @@ export const justiceLenses = pgTable("justice_lenses", {
   orderIndex: integer("order_index").notNull().default(0),
 });
 
+// === POST READS (Track who viewed a report version) ===
+export const postReads = pgTable("post_reads", {
+  id: serial("id").primaryKey(),
+  versionId: integer("version_id").references(() => reportVersions.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  readAt: timestamp("read_at").defaultNow(),
+});
+
+// === POST REACTIONS (Emoji reactions on report versions) ===
+export const postReactions = pgTable("post_reactions", {
+  id: serial("id").primaryKey(),
+  versionId: integer("version_id").references(() => reportVersions.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  reactionType: text("reaction_type").notNull(), // "insightful", "well_written", "thoughtful", "love"
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // === RELATIONS ===
 export const inquiriesRelations = relations(inquiries, ({ one, many }) => ({
   user: one(users, { fields: [inquiries.userId], references: [users.id] }),
@@ -133,6 +150,16 @@ export const commentsRelations = relations(comments, ({ one }) => ({
   author: one(users, { fields: [comments.userId], references: [users.id] }),
 }));
 
+export const postReadsRelations = relations(postReads, ({ one }) => ({
+  version: one(reportVersions, { fields: [postReads.versionId], references: [reportVersions.id] }),
+  user: one(users, { fields: [postReads.userId], references: [users.id] }),
+}));
+
+export const postReactionsRelations = relations(postReactions, ({ one }) => ({
+  version: one(reportVersions, { fields: [postReactions.versionId], references: [reportVersions.id] }),
+  user: one(users, { fields: [postReactions.userId], references: [users.id] }),
+}));
+
 // === INSERTS ===
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
 export const insertInquirySchema = createInsertSchema(inquiries).omit({ id: true, createdAt: true });
@@ -145,6 +172,8 @@ export const insertCommentSchema = createInsertSchema(comments).omit({ id: true,
 export const insertInquiryCommentSchema = createInsertSchema(inquiryComments).omit({ id: true, createdAt: true });
 export const insertSettingSchema = createInsertSchema(appSettings);
 export const insertJusticeLensSchema = createInsertSchema(justiceLenses).omit({ id: true });
+export const insertPostReadSchema = createInsertSchema(postReads).omit({ id: true, readAt: true });
+export const insertPostReactionSchema = createInsertSchema(postReactions).omit({ id: true, createdAt: true });
 
 // === EXPORTS ===
 export type User = typeof users.$inferSelect;
@@ -158,6 +187,8 @@ export type Comment = typeof comments.$inferSelect;
 export type InquiryComment = typeof inquiryComments.$inferSelect;
 export type AppSetting = typeof appSettings.$inferSelect;
 export type JusticeLens = typeof justiceLenses.$inferSelect;
+export type PostRead = typeof postReads.$inferSelect;
+export type PostReaction = typeof postReactions.$inferSelect;
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertInquiry = z.infer<typeof insertInquirySchema>;
@@ -170,3 +201,5 @@ export type InsertComment = z.infer<typeof insertCommentSchema>;
 export type InsertInquiryComment = z.infer<typeof insertInquiryCommentSchema>;
 export type InsertSetting = z.infer<typeof insertSettingSchema>;
 export type InsertJusticeLens = z.infer<typeof insertJusticeLensSchema>;
+export type InsertPostRead = z.infer<typeof insertPostReadSchema>;
+export type InsertPostReaction = z.infer<typeof insertPostReactionSchema>;
