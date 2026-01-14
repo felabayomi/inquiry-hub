@@ -23,6 +23,7 @@ export interface IStorage {
   createOrUpdateInquiry(inquiry: InsertInquiry): Promise<Inquiry>;
   getReflections(inquiryId: number): Promise<Reflection[]>;
   createReflection(reflection: InsertReflection): Promise<Reflection>;
+  deleteReflection(id: number): Promise<void>;
 
   // Resources
   getResources(): Promise<(Resource & { user: User })[]>;
@@ -32,6 +33,10 @@ export interface IStorage {
   getMeetings(): Promise<Meeting[]>;
   createMeeting(meeting: InsertMeeting): Promise<Meeting>;
   updateMeeting(id: number, updates: Partial<InsertMeeting>): Promise<Meeting>;
+
+  // Admin Cohort Overview
+  getAllInquiries(): Promise<(Inquiry & { user: User, reflections: Reflection[], comments: (any)[] })[]>;
+  addInquiryComment(comment: any): Promise<any>;
 
   // Report
   getReportSections(): Promise<ReportSection[]>;
@@ -105,6 +110,10 @@ export class DatabaseStorage implements IStorage {
     return newReflection;
   }
 
+  async deleteReflection(id: number): Promise<void> {
+    await db.delete(reflections).where(eq(reflections.id, id));
+  }
+
   async getResources(): Promise<(Resource & { user: User })[]> {
     return await db.query.resources.findMany({
       with: { user: true },
@@ -132,6 +141,22 @@ export class DatabaseStorage implements IStorage {
       .where(eq(meetings.id, id))
       .returning();
     return updated;
+  }
+
+  async getAllInquiries(): Promise<(Inquiry & { user: User, reflections: Reflection[], comments: (any)[] })[]> {
+    return await db.query.inquiries.findMany({
+      with: {
+        user: true,
+        reflections: {
+          orderBy: desc(reflections.createdAt)
+        },
+      }
+    }) as any;
+  }
+
+  async addInquiryComment(comment: any): Promise<any> {
+    const [newComment] = await db.insert((schema as any).inquiryComments).values(comment).returning();
+    return newComment;
   }
 
   async getReportSections(): Promise<ReportSection[]> {

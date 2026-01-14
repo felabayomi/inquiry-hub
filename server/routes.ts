@@ -30,6 +30,25 @@ export async function registerRoutes(
     res.json(inquiry);
   });
 
+  app.delete('/api/reflections/:id', async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    await storage.deleteReflection(Number(req.params.id));
+    res.json({ success: true });
+  });
+
+  app.get(api.inquiries.listAll.path, async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) return res.sendStatus(401);
+    const inquiries = await storage.getAllInquiries();
+    res.json(inquiries);
+  });
+
+  app.post(api.inquiries.addComment.path, async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) return res.sendStatus(401);
+    const input = api.inquiries.addComment.input.parse(req.body);
+    const comment = await storage.addInquiryComment({ ...input, userId: req.user.id });
+    res.status(201).json(comment);
+  });
+
   // === REFLECTIONS ===
   app.post(api.reflections.create.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);

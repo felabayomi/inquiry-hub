@@ -74,6 +74,31 @@ export const api = {
         200: z.custom<typeof inquiries.$inferSelect>(),
       },
     },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/inquiries/:id',
+      responses: {
+        200: z.object({ success: z.boolean() }),
+        401: errorSchemas.unauthorized,
+      },
+    },
+    listAll: {
+      method: 'GET' as const,
+      path: '/api/admin/inquiries',
+      responses: {
+        200: z.array(z.custom<typeof inquiries.$inferSelect & { user: typeof users.$inferSelect, reflections: typeof reflections.$inferSelect[], comments: (typeof inquiryComments.$inferSelect & { user: typeof users.$inferSelect })[] }>()),
+        401: errorSchemas.unauthorized,
+      },
+    },
+    addComment: {
+      method: 'POST' as const,
+      path: '/api/inquiries/comments',
+      input: insertInquiryCommentSchema.omit({ userId: true }),
+      responses: {
+        201: z.custom<typeof inquiryComments.$inferSelect>(),
+        401: errorSchemas.unauthorized,
+      },
+    },
   },
   reflections: {
     create: {

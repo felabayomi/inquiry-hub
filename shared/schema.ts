@@ -64,6 +64,15 @@ export const reportSections = pgTable("report_sections", {
   slug: text("slug").notNull(), // e.g. "introduction", "methods"
 });
 
+// === INQUIRY COMMENTS (Admin Feedback) ===
+export const inquiryComments = pgTable("inquiry_comments", {
+  id: serial("id").primaryKey(),
+  inquiryId: integer("inquiry_id").references(() => inquiries.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const reportVersions = pgTable("report_versions", {
   id: serial("id").primaryKey(),
   sectionId: integer("section_id").references(() => reportSections.id).notNull(),
@@ -97,6 +106,11 @@ export const reflectionsRelations = relations(reflections, ({ one }) => ({
   inquiry: one(inquiries, { fields: [reflections.inquiryId], references: [inquiries.id] }),
 }));
 
+export const inquiryCommentsRelations = relations(inquiryComments, ({ one }) => ({
+  inquiry: one(inquiries, { fields: [inquiryComments.inquiryId], references: [inquiries.id] }),
+  user: one(users, { fields: [inquiryComments.userId], references: [users.id] }),
+}));
+
 export const resourcesRelations = relations(resources, ({ one }) => ({
   user: one(users, { fields: [resources.userId], references: [users.id] }),
 }));
@@ -120,6 +134,7 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({ id: true,
 export const insertReportSectionSchema = createInsertSchema(reportSections).omit({ id: true });
 export const insertReportVersionSchema = createInsertSchema(reportVersions).omit({ id: true, createdAt: true });
 export const insertCommentSchema = createInsertSchema(comments).omit({ id: true, createdAt: true });
+export const insertInquiryCommentSchema = createInsertSchema(inquiryComments).omit({ id: true, createdAt: true });
 export const insertSettingSchema = createInsertSchema(appSettings);
 
 // === EXPORTS ===
