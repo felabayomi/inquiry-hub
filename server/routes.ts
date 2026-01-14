@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { setupAuth } from "./auth";
+import { setupAuth, hashPassword, comparePasswords } from "./auth";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
@@ -214,6 +214,40 @@ export async function registerRoutes(
     res.json({ success: true });
   });
 
+  // === SELF-SERVICE ACCOUNT MANAGEMENT ===
+  app.patch(api.users.updateOwnUsername.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const input = api.users.updateOwnUsername.input.parse(req.body);
+    // Check if username is already taken
+    const existing = await storage.getUserByUsername(input.username);
+    if (existing && existing.id !== req.user.id) {
+      return res.status(409).json({ message: "Username already taken" });
+    }
+    const user = await storage.updateUserUsername(req.user.id, input.username);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const { password, ...safeUser } = user;
+    res.json(safeUser);
+  });
+
+  app.patch(api.users.updateOwnPassword.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const input = api.users.updateOwnPassword.input.parse(req.body);
+    // Verify current password
+    const user = await storage.getUser(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const isValid = await comparePasswords(input.currentPassword, user.password);
+    if (!isValid) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+    const hashedPassword = await hashPassword(input.newPassword);
+    await storage.updateUserPassword(req.user.id, hashedPassword);
+    res.json({ success: true });
+  });
+
   // === JUSTICE LENSES ===
   app.get(api.justiceLenses.list.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
@@ -251,17 +285,6 @@ export async function registerRoutes(
   await seedData();
 
   return httpServer;
-}
-
-import { scrypt, randomBytes } from "crypto";
-import { promisify } from "util";
-
-const scryptAsync = promisify(scrypt);
-
-async function hashPassword(password: string) {
-  const salt = randomBytes(16).toString("hex");
-  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-  return `${buf.toString("hex")}.${salt}`;
 }
 
 async function seedData() {

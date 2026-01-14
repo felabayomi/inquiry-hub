@@ -30,11 +30,12 @@ export function Sidebar() {
     { href: "/resources", label: "Shared Resources", icon: Library },
     { href: "/meetings", label: "Meetings", icon: CalendarDays },
     { href: "/report", label: "Report Builder", icon: FileText },
+    { href: "/account", label: "My Account", icon: User },
   ];
 
   if (user?.role === "admin") {
     navItems.push({ href: "/cohort", label: "Cohort Overview", icon: Users });
-    navItems.push({ href: "/settings", label: "Settings", icon: Settings });
+    navItems.push({ href: "/settings", label: "Admin Settings", icon: Settings });
   }
 
   const toggleSidebar = () => setIsOpen(!isOpen);

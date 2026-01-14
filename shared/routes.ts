@@ -267,6 +267,27 @@ export const api = {
         404: errorSchemas.notFound,
       },
     },
+    // Self-service endpoints for logged-in users
+    updateOwnUsername: {
+      method: 'PATCH' as const,
+      path: '/api/account/username',
+      input: z.object({ username: z.string().min(3).max(30) }),
+      responses: {
+        200: z.custom<typeof users.$inferSelect>(),
+        401: errorSchemas.unauthorized,
+        409: z.object({ message: z.string() }),
+      },
+    },
+    updateOwnPassword: {
+      method: 'PATCH' as const,
+      path: '/api/account/password',
+      input: z.object({ currentPassword: z.string(), newPassword: z.string().min(6) }),
+      responses: {
+        200: z.object({ success: z.boolean() }),
+        401: errorSchemas.unauthorized,
+        400: z.object({ message: z.string() }),
+      },
+    },
   },
   justiceLenses: {
     list: {

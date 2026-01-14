@@ -15,6 +15,7 @@ import Meetings from "@/pages/Meetings";
 import ReportBuilder from "@/pages/ReportBuilder";
 import Settings from "@/pages/Settings";
 import CohortOverview from "@/pages/CohortOverview";
+import Account from "@/pages/Account";
 import NotFound from "@/pages/not-found";
 
 function ProtectedRoute({ component: Component, adminOnly = false }: { component: React.ComponentType, adminOnly?: boolean }) {
@@ -86,6 +87,10 @@ function Router() {
 
       <Route path="/cohort">
         <ProtectedRoute component={CohortOverview} adminOnly />
+      </Route>
+
+      <Route path="/account">
+        <ProtectedRoute component={Account} />
       </Route>
 
       <Route component={NotFound} />
