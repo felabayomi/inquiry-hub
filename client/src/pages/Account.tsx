@@ -7,9 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { User, Key, Shield, Calendar, Lightbulb, Sparkles, Brain, Heart, HelpCircle } from "lucide-react";
+import { 
+  User, Key, Shield, Calendar, Lightbulb, Sparkles, Brain, Heart, HelpCircle,
+  BookOpen, LayoutDashboard, Search, Users, FileText, MessageSquare, Eye, Tag, Plus, CheckCircle
+} from "lucide-react";
 import { format } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function Account() {
@@ -100,6 +104,158 @@ export default function Account() {
   return (
     <PageLayout title="My Account" description="Manage your personal account settings.">
       <div className="max-w-2xl space-y-6">
+        {/* Getting Started Guide */}
+        <Card className="paper-card">
+          <CardHeader>
+            <CardTitle className="text-xl font-serif flex items-center gap-2">
+              <BookOpen className="h-5 w-5" /> How to Use This App
+            </CardTitle>
+            <CardDescription>A complete guide to help you get the most out of the Cohort Inquiry platform.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="overview">
+                <AccordionTrigger className="text-left">
+                  <div className="flex items-center gap-2">
+                    <LayoutDashboard className="h-4 w-4 text-primary" />
+                    <span>Dashboard Overview</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="text-sm text-muted-foreground space-y-2 pl-6">
+                  <p>The <strong>Dashboard</strong> is your home base. Here you'll find:</p>
+                  <ul className="list-disc pl-4 space-y-1">
+                    <li><strong>Cohort Timeline</strong> - See important dates and milestones from January to July 2026</li>
+                    <li><strong>Upcoming Meetings</strong> - Quick view of your next scheduled cohort meetings</li>
+                    <li><strong>Quick Actions</strong> - Fast links to common tasks like adding reflections or resources</li>
+                    <li><strong>Recent Activity</strong> - See what your cohort members have been working on</li>
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="inquiries">
+                <AccordionTrigger className="text-left">
+                  <div className="flex items-center gap-2">
+                    <Search className="h-4 w-4 text-primary" />
+                    <span>My Inquiries - Tracking Your Research</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="text-sm text-muted-foreground space-y-2 pl-6">
+                  <p>The <strong>My Inquiries</strong> page is your personal research journal:</p>
+                  <ul className="list-disc pl-4 space-y-1">
+                    <li><strong>Inquiry Questions</strong> - Document the research questions you're exploring</li>
+                    <li><strong>Learning Pathway</strong> - Track books, articles, tools, and resources you're studying</li>
+                    <li><strong>Weekly Reflections</strong> - Write brief reflections on your learning each week</li>
+                    <li><strong>Progress Tracking</strong> - See how your inquiry evolves over time</li>
+                  </ul>
+                  <p className="pt-2">Tip: Regular weekly reflections help you synthesize your learning and prepare for the final report.</p>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="resources">
+                <AccordionTrigger className="text-left">
+                  <div className="flex items-center gap-2">
+                    <Tag className="h-4 w-4 text-primary" />
+                    <span>Shared Resources - Collaborative Library</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="text-sm text-muted-foreground space-y-2 pl-6">
+                  <p>The <strong>Resources</strong> page is a shared library for your cohort:</p>
+                  <ul className="list-disc pl-4 space-y-1">
+                    <li><strong>Add Resources</strong> - Share articles, tools, videos, or any helpful links</li>
+                    <li><strong>Add Tags</strong> - Categorize resources so others can find them easily</li>
+                    <li><strong>Add Notes</strong> - Include your thoughts on why this resource is valuable</li>
+                    <li><strong>Browse & Search</strong> - Find resources shared by other cohort members</li>
+                  </ul>
+                  <p className="pt-2">Tip: When you find something useful, share it! Your cohort members will appreciate it.</p>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="meetings">
+                <AccordionTrigger className="text-left">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-primary" />
+                    <span>Meetings - Cohort Gatherings</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="text-sm text-muted-foreground space-y-2 pl-6">
+                  <p>The <strong>Meetings</strong> page helps you stay organized:</p>
+                  <ul className="list-disc pl-4 space-y-1">
+                    <li><strong>View Schedule</strong> - See all upcoming and past meetings</li>
+                    <li><strong>Meeting Details</strong> - Access agendas, Zoom links, and notes</li>
+                    <li><strong>Meeting Notes</strong> - Review or add notes from each session</li>
+                    <li><strong>Action Items</strong> - Track tasks assigned during meetings</li>
+                  </ul>
+                  <p className="pt-2">Administrators can create and edit meetings. Members can view and add notes.</p>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="report">
+                <AccordionTrigger className="text-left">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-primary" />
+                    <span>Report Builder - Collaborative Writing</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="text-sm text-muted-foreground space-y-2 pl-6">
+                  <p>The <strong>Report Builder</strong> is where your cohort collaboratively writes the final report:</p>
+                  <ul className="list-disc pl-4 space-y-1">
+                    <li><strong>8 Sections</strong> - From Introduction to References, each section can have multiple contributions</li>
+                    <li><strong>Post Contributions</strong> - Click "Add your contribution" to add your thoughts to any section</li>
+                    <li><strong>Justice Lens Tags</strong> - When posting, select relevant justice/ethics lenses to tag your contribution</li>
+                    <li><strong>Section Discussion</strong> - Use the chat sidebar to discuss the section with your cohort</li>
+                  </ul>
+                  <p className="pt-2 font-medium">Engagement Features:</p>
+                  <ul className="list-disc pl-4 space-y-1">
+                    <li><Eye className="h-3 w-3 inline mr-1" /><strong>Read Tracking</strong> - Posts show how many people have read them (e.g., "3/5")</li>
+                    <li><strong>New Badge</strong> - Unread posts are highlighted with a "New" badge</li>
+                    <li><strong>Reactions</strong> - React to posts with Insightful, Well Written, Makes Me Think, or Love This</li>
+                    <li><strong>Unread Counts</strong> - Section tabs show how many new posts you haven't read</li>
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="engagement">
+                <AccordionTrigger className="text-left">
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4 text-primary" />
+                    <span>Being an Active Cohort Member</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="text-sm text-muted-foreground space-y-2 pl-6">
+                  <p>Here's how to be an engaged member of your inquiry cohort:</p>
+                  <ul className="list-disc pl-4 space-y-1">
+                    <li><strong>Read regularly</strong> - Check the Report Builder often to see new contributions</li>
+                    <li><strong>React to posts</strong> - Let your cohort know when something resonates with you</li>
+                    <li><strong>Share resources</strong> - Add helpful materials to the shared library</li>
+                    <li><strong>Write reflections</strong> - Document your learning journey weekly</li>
+                    <li><strong>Contribute to sections</strong> - Add your voice to the collaborative report</li>
+                    <li><strong>Join discussions</strong> - Participate in section-level conversations</li>
+                  </ul>
+                  <p className="pt-2">Remember: This is a collaborative journey. Your contributions help everyone learn!</p>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="tips">
+                <AccordionTrigger className="text-left">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-primary" />
+                    <span>Quick Tips for Success</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="text-sm text-muted-foreground space-y-2 pl-6">
+                  <ul className="list-disc pl-4 space-y-2">
+                    <li><strong>Weekly check-ins</strong> - Set aside 15-30 minutes each week to add reflections and catch up on posts</li>
+                    <li><strong>Use tags</strong> - Tag your resources and posts with justice lenses to help with final report synthesis</li>
+                    <li><strong>Read before posting</strong> - Check what others have written to build on their ideas</li>
+                    <li><strong>Ask questions</strong> - Use the discussion sidebar to ask clarifying questions</li>
+                    <li><strong>Be supportive</strong> - Use reactions to encourage your cohort members</li>
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </CardContent>
+        </Card>
+
         {/* Account Information */}
         <Card className="paper-card">
           <CardHeader>
