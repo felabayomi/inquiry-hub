@@ -2,13 +2,13 @@ import { useState } from "react";
 import { PageLayout } from "@/components/layout/PageLayout";
 import { useSettings, useUpdateSetting } from "@/hooks/use-settings";
 import { useMeetings, useCreateMeeting, useUpdateMeeting } from "@/hooks/use-meetings";
-import { useReportSections, useCreateSection, useUpdateSection, useDeleteSection } from "@/hooks/use-report";
+import { useReportSections, useCreateSection, useUpdateSection, useDeleteSection, useJusticeLenses, useCreateJusticeLens, useUpdateJusticeLens, useDeleteJusticeLens } from "@/hooks/use-report";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, ExternalLink, Calendar, Video, Clock, FileText, Trash2, Pencil, GripVertical, BookOpen } from "lucide-react";
+import { Plus, ExternalLink, Calendar, Video, Clock, FileText, Trash2, Pencil, GripVertical, BookOpen, Scale } from "lucide-react";
 import { format } from "date-fns";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
@@ -21,7 +21,11 @@ export default function Settings() {
   const { data: sections, isLoading: sectionsLoading } = useReportSections();
   const { mutate: createSection, isPending: isCreatingSection } = useCreateSection();
   const { mutate: updateSection } = useUpdateSection();
-  const { mutate: deleteSection, isPending: isDeletingSection } = useDeleteSection();
+  const { mutate: deleteSection } = useDeleteSection();
+  const { data: lenses, isLoading: lensesLoading } = useJusticeLenses();
+  const { mutate: createLens, isPending: isCreatingLens } = useCreateJusticeLens();
+  const { mutate: updateLens } = useUpdateJusticeLens();
+  const { mutate: deleteLens } = useDeleteJusticeLens();
   const { toast } = useToast();
 
   const [newMeeting, setNewMeeting] = useState({
@@ -39,6 +43,13 @@ export default function Settings() {
   });
 
   const [editingSection, setEditingSection] = useState<number | null>(null);
+  
+  const [newLens, setNewLens] = useState({
+    label: "",
+    slug: "",
+    orderIndex: 0
+  });
+  const [editingLens, setEditingLens] = useState<number | null>(null);
 
   const getSetting = (key: string) => settings?.find(s => s.key === key)?.value || "";
 
@@ -77,7 +88,25 @@ export default function Settings() {
     deleteSection(id);
   };
 
-  if (settingsLoading || meetingsLoading || sectionsLoading) return <PageLayout title="Settings">Loading...</PageLayout>;
+  const handleCreateLens = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newLens.label || !newLens.slug) return;
+    const nextOrder = (lenses?.length || 0) + 1;
+    createLens({
+      ...newLens,
+      orderIndex: nextOrder,
+    }, {
+      onSuccess: () => {
+        setNewLens({ label: "", slug: "", orderIndex: 0 });
+      }
+    });
+  };
+
+  const handleDeleteLens = (id: number) => {
+    deleteLens(id);
+  };
+
+  if (settingsLoading || meetingsLoading || sectionsLoading || lensesLoading) return <PageLayout title="Settings">Loading...</PageLayout>;
 
   return (
     <PageLayout title="Admin Settings" description="Configure global application parameters.">
@@ -299,6 +328,113 @@ export default function Settings() {
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
                               <AlertDialogAction onClick={() => handleDeleteSection(section.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Justice Lenses Management */}
+        <Card className="paper-card">
+          <CardHeader>
+            <CardTitle className="text-xl font-serif">Justice Lenses</CardTitle>
+            <CardDescription>Manage the ethical lenses members can apply to their report drafts.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-8">
+            <form onSubmit={handleCreateLens} className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 border rounded-lg bg-slate-50/50">
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2"><Scale className="h-4 w-4" /> Lens Label</Label>
+                <Input 
+                  placeholder="e.g. Environmental Impact" 
+                  value={newLens.label}
+                  onChange={(e) => setNewLens({ ...newLens, label: e.target.value })}
+                  required
+                  data-testid="input-lens-label"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Slug (ID)</Label>
+                <Input 
+                  placeholder="e.g. environmental" 
+                  value={newLens.slug}
+                  onChange={(e) => setNewLens({ ...newLens, slug: e.target.value.toLowerCase().replace(/\s+/g, '_') })}
+                  required
+                  data-testid="input-lens-slug"
+                />
+              </div>
+              <Button type="submit" className="md:col-span-2 mt-2" disabled={isCreatingLens} data-testid="button-add-lens">
+                <Plus className="mr-2 h-4 w-4" /> Add Lens
+              </Button>
+            </form>
+
+            <div className="space-y-4">
+              <h3 className="font-serif text-lg font-bold">Current Lenses</h3>
+              <div className="space-y-2">
+                {lenses?.length === 0 ? (
+                  <p className="text-sm text-muted-foreground italic">No lenses created yet.</p>
+                ) : (
+                  lenses?.sort((a,b) => a.orderIndex - b.orderIndex).map((lens) => (
+                    <div key={lens.id} className="flex items-center justify-between p-4 border rounded-lg gap-4 bg-white" data-testid={`lens-item-${lens.id}`}>
+                      <div className="flex items-center gap-3 flex-1">
+                        <GripVertical className="h-4 w-4 text-slate-300" />
+                        <div className="flex-1">
+                          {editingLens === lens.id ? (
+                            <Input 
+                              defaultValue={lens.label}
+                              className="h-8"
+                              onBlur={(e) => {
+                                updateLens({ id: lens.id, data: { label: e.target.value } });
+                                setEditingLens(null);
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  updateLens({ id: lens.id, data: { label: e.currentTarget.value } });
+                                  setEditingLens(null);
+                                }
+                              }}
+                              autoFocus
+                            />
+                          ) : (
+                            <>
+                              <p className="font-medium text-slate-900">{lens.label}</p>
+                              <p className="text-xs text-muted-foreground">{lens.slug}</p>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          onClick={() => setEditingLens(lens.id)}
+                          data-testid={`button-edit-lens-${lens.id}`}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive" data-testid={`button-delete-lens-${lens.id}`}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Lens?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently delete the "{lens.label}" lens. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDeleteLens(lens.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                                 Delete
                               </AlertDialogAction>
                             </AlertDialogFooter>

@@ -183,6 +183,39 @@ export async function registerRoutes(
     res.json(setting);
   });
 
+  // === JUSTICE LENSES ===
+  app.get(api.justiceLenses.list.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const lenses = await storage.getJusticeLenses();
+    res.json(lenses);
+  });
+
+  app.post(api.justiceLenses.create.path, async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) return res.sendStatus(401);
+    const input = api.justiceLenses.create.input.parse(req.body);
+    const lens = await storage.createJusticeLens(input);
+    res.status(201).json(lens);
+  });
+
+  app.patch('/api/admin/justice-lenses/:id', async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) return res.sendStatus(401);
+    const input = api.justiceLenses.update.input.parse(req.body);
+    const lens = await storage.updateJusticeLens(Number(req.params.id), input);
+    if (!lens) {
+      return res.status(404).json({ message: "Justice lens not found" });
+    }
+    res.json(lens);
+  });
+
+  app.delete('/api/admin/justice-lenses/:id', async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) return res.sendStatus(401);
+    const deleted = await storage.deleteJusticeLens(Number(req.params.id));
+    if (!deleted) {
+      return res.status(404).json({ message: "Justice lens not found" });
+    }
+    res.json({ success: true });
+  });
+
   // === SEED DATA ===
   await seedData();
 
@@ -236,6 +269,15 @@ async function seedData() {
     { title: "References", orderIndex: 8, slug: "references", description: "Cite your sources." },
   ];
   await storage.seedReportSections(sections);
+
+  // Seed justice lenses
+  const lenses = [
+    { slug: "who_benefits", label: "Who benefits?", orderIndex: 1 },
+    { slug: "who_is_harmed", label: "Who is harmed?", orderIndex: 2 },
+    { slug: "labor", label: "Invisible Labor", orderIndex: 3 },
+    { slug: "power", label: "Power Dynamics", orderIndex: 4 },
+  ];
+  await storage.seedJusticeLenses(lenses);
 
   // Seed sample meeting
   const meetings = await storage.getMeetings();

@@ -11,6 +11,9 @@ type SaveVersionInput = z.infer<typeof api.report.saveVersion.input>;
 type AddCommentInput = z.infer<typeof api.report.addComment.input>;
 type CreateSectionInput = z.infer<typeof api.report.createSection.input>;
 type UpdateSectionInput = z.infer<typeof api.report.updateSection.input>;
+type JusticeLensesList = z.infer<typeof api.justiceLenses.list.responses[200]>;
+type CreateJusticeLensInput = z.infer<typeof api.justiceLenses.create.input>;
+type UpdateJusticeLensInput = z.infer<typeof api.justiceLenses.update.input>;
 
 export function useReportSections() {
   return useQuery<SectionsList>({
@@ -174,6 +177,91 @@ export function useDeleteSection() {
     },
     onError: () => {
       toast({ title: "Failed to delete section", variant: "destructive" });
+    },
+  });
+}
+
+// Justice Lenses
+export function useJusticeLenses() {
+  return useQuery<JusticeLensesList>({
+    queryKey: [api.justiceLenses.list.path],
+    queryFn: async () => {
+      const res = await fetch(api.justiceLenses.list.path, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch justice lenses");
+      return await res.json();
+    },
+  });
+}
+
+export function useCreateJusticeLens() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (data: CreateJusticeLensInput) => {
+      const res = await fetch(api.justiceLenses.create.path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to create justice lens");
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.justiceLenses.list.path] });
+      toast({ title: "Justice Lens Created" });
+    },
+    onError: () => {
+      toast({ title: "Failed to create justice lens", variant: "destructive" });
+    },
+  });
+}
+
+export function useUpdateJusticeLens() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: UpdateJusticeLensInput }) => {
+      const res = await fetch(`/api/admin/justice-lenses/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to update justice lens");
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.justiceLenses.list.path] });
+      toast({ title: "Justice Lens Updated" });
+    },
+    onError: () => {
+      toast({ title: "Failed to update justice lens", variant: "destructive" });
+    },
+  });
+}
+
+export function useDeleteJusticeLens() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/admin/justice-lenses/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to delete justice lens");
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.justiceLenses.list.path] });
+      toast({ title: "Justice Lens Deleted" });
+    },
+    onError: () => {
+      toast({ title: "Failed to delete justice lens", variant: "destructive" });
     },
   });
 }

@@ -1,8 +1,8 @@
 import { db } from "./db";
 import { 
-  users, inquiries, reflections, resources, meetings, reportSections, reportVersions, comments, appSettings, inquiryComments,
-  type User, type Inquiry, type Reflection, type Resource, type Meeting, type ReportSection, type ReportVersion, type Comment, type AppSetting, type InquiryComment,
-  type InsertUser, type InsertInquiry, type InsertReflection, type InsertResource, type InsertMeeting, type InsertReportVersion, type InsertComment, type InsertSetting, type InsertInquiryComment, type InsertReportSection
+  users, inquiries, reflections, resources, meetings, reportSections, reportVersions, comments, appSettings, inquiryComments, justiceLenses,
+  type User, type Inquiry, type Reflection, type Resource, type Meeting, type ReportSection, type ReportVersion, type Comment, type AppSetting, type InquiryComment, type JusticeLens,
+  type InsertUser, type InsertInquiry, type InsertReflection, type InsertResource, type InsertMeeting, type InsertReportVersion, type InsertComment, type InsertSetting, type InsertInquiryComment, type InsertReportSection, type InsertJusticeLens
 } from "@shared/schema";
 import { eq, desc, and } from "drizzle-orm";
 import session from "express-session";
@@ -56,8 +56,15 @@ export interface IStorage {
   getSetting(key: string): Promise<AppSetting | undefined>;
   updateSetting(setting: InsertSetting): Promise<AppSetting>;
 
+  // Justice Lenses
+  getJusticeLenses(): Promise<JusticeLens[]>;
+  createJusticeLens(lens: InsertJusticeLens): Promise<JusticeLens>;
+  updateJusticeLens(id: number, lens: Partial<InsertJusticeLens>): Promise<JusticeLens | undefined>;
+  deleteJusticeLens(id: number): Promise<boolean>;
+
   // Seeding helpers
   seedReportSections(sections: InsertReportSection[]): Promise<void>;
+  seedJusticeLenses(lenses: InsertJusticeLens[]): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -266,6 +273,35 @@ export class DatabaseStorage implements IStorage {
     const existing = await this.getReportSections();
     if (existing.length === 0) {
       await db.insert(reportSections).values(sections);
+    }
+  }
+
+  async getJusticeLenses(): Promise<JusticeLens[]> {
+    return await db.select().from(justiceLenses).orderBy(justiceLenses.orderIndex);
+  }
+
+  async createJusticeLens(lens: InsertJusticeLens): Promise<JusticeLens> {
+    const [newLens] = await db.insert(justiceLenses).values(lens).returning();
+    return newLens;
+  }
+
+  async updateJusticeLens(id: number, lens: Partial<InsertJusticeLens>): Promise<JusticeLens | undefined> {
+    const [updated] = await db.update(justiceLenses)
+      .set(lens)
+      .where(eq(justiceLenses.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteJusticeLens(id: number): Promise<boolean> {
+    const result = await db.delete(justiceLenses).where(eq(justiceLenses.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async seedJusticeLenses(lenses: InsertJusticeLens[]): Promise<void> {
+    const existing = await this.getJusticeLenses();
+    if (existing.length === 0) {
+      await db.insert(justiceLenses).values(lenses);
     }
   }
 }

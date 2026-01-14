@@ -96,6 +96,14 @@ export const appSettings = pgTable("app_settings", {
   value: text("value").notNull(),
 });
 
+// === JUSTICE LENSES ===
+export const justiceLenses = pgTable("justice_lenses", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(), // "who_benefits", "labor", etc.
+  label: text("label").notNull(), // "Who benefits?", "Invisible Labor", etc.
+  orderIndex: integer("order_index").notNull().default(0),
+});
+
 // === RELATIONS ===
 export const inquiriesRelations = relations(inquiries, ({ one, many }) => ({
   user: one(users, { fields: [inquiries.userId], references: [users.id] }),
@@ -136,6 +144,7 @@ export const insertReportVersionSchema = createInsertSchema(reportVersions).omit
 export const insertCommentSchema = createInsertSchema(comments).omit({ id: true, createdAt: true });
 export const insertInquiryCommentSchema = createInsertSchema(inquiryComments).omit({ id: true, createdAt: true });
 export const insertSettingSchema = createInsertSchema(appSettings);
+export const insertJusticeLensSchema = createInsertSchema(justiceLenses).omit({ id: true });
 
 // === EXPORTS ===
 export type User = typeof users.$inferSelect;
@@ -148,6 +157,7 @@ export type ReportVersion = typeof reportVersions.$inferSelect;
 export type Comment = typeof comments.$inferSelect;
 export type InquiryComment = typeof inquiryComments.$inferSelect;
 export type AppSetting = typeof appSettings.$inferSelect;
+export type JusticeLens = typeof justiceLenses.$inferSelect;
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertInquiry = z.infer<typeof insertInquirySchema>;
@@ -159,3 +169,4 @@ export type InsertReportVersion = z.infer<typeof insertReportVersionSchema>;
 export type InsertComment = z.infer<typeof insertCommentSchema>;
 export type InsertInquiryComment = z.infer<typeof insertInquiryCommentSchema>;
 export type InsertSetting = z.infer<typeof insertSettingSchema>;
+export type InsertJusticeLens = z.infer<typeof insertJusticeLensSchema>;

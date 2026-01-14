@@ -6,7 +6,8 @@ import {
   useSaveVersion, 
   useVersionHistory, 
   useSectionComments,
-  useAddComment 
+  useAddComment,
+  useJusticeLenses
 } from "@/hooks/use-report";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
@@ -33,14 +34,8 @@ function ReportSidebar({
 }) {
   const { data: comments } = useSectionComments(sectionId);
   const { mutate: addComment, isPending } = useAddComment();
+  const { data: justiceLenses } = useJusticeLenses();
   const [newComment, setNewComment] = useState("");
-
-  const justiceLenses = [
-    { id: "who_benefits", label: "Who benefits?" },
-    { id: "who_is_harmed", label: "Who is harmed?" },
-    { id: "labor", label: "Invisible Labor" },
-    { id: "power", label: "Power Dynamics" },
-  ];
 
   const toggleTag = (tag: string) => {
     if (tags.includes(tag)) {
@@ -72,19 +67,19 @@ function ReportSidebar({
                 Tag this draft with the lenses you've considered.
               </p>
               <div className="space-y-2">
-                {justiceLenses.map(lens => (
+                {(justiceLenses || []).map(lens => (
                   <div 
-                    key={lens.id}
-                    onClick={() => toggleTag(lens.id)}
+                    key={lens.slug}
+                    onClick={() => toggleTag(lens.slug)}
                     className={cn(
                       "p-3 rounded-md cursor-pointer border transition-all text-sm flex items-center justify-between",
-                      tags.includes(lens.id)
+                      tags.includes(lens.slug)
                         ? "bg-primary/10 border-primary text-primary"
                         : "bg-white border-slate-200 hover:border-slate-300"
                     )}
                   >
                     {lens.label}
-                    {tags.includes(lens.id) && <Tag className="h-3 w-3" />}
+                    {tags.includes(lens.slug) && <Tag className="h-3 w-3" />}
                   </div>
                 ))}
               </div>

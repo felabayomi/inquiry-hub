@@ -2,8 +2,8 @@ import { z } from 'zod';
 import { 
   insertUserSchema, insertInquirySchema, insertReflectionSchema, 
   insertResourceSchema, insertMeetingSchema, insertReportVersionSchema, 
-  insertCommentSchema, insertSettingSchema, insertInquiryCommentSchema, insertReportSectionSchema,
-  users, inquiries, reflections, resources, meetings, reportSections, reportVersions, comments, appSettings, inquiryComments
+  insertCommentSchema, insertSettingSchema, insertInquiryCommentSchema, insertReportSectionSchema, insertJusticeLensSchema,
+  users, inquiries, reflections, resources, meetings, reportSections, reportVersions, comments, appSettings, inquiryComments, justiceLenses
 } from './schema';
 
 // Shared error schemas
@@ -235,6 +235,38 @@ export const api = {
       input: insertSettingSchema,
       responses: {
         200: z.custom<typeof appSettings.$inferSelect>(),
+      },
+    },
+  },
+  justiceLenses: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/justice-lenses',
+      responses: {
+        200: z.array(z.custom<typeof justiceLenses.$inferSelect>()),
+      },
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/admin/justice-lenses',
+      input: insertJusticeLensSchema,
+      responses: {
+        201: z.custom<typeof justiceLenses.$inferSelect>(),
+      },
+    },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/admin/justice-lenses/:id',
+      input: insertJusticeLensSchema.partial(),
+      responses: {
+        200: z.custom<typeof justiceLenses.$inferSelect>(),
+      },
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/admin/justice-lenses/:id',
+      responses: {
+        200: z.object({ success: z.boolean() }),
       },
     },
   },
