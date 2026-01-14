@@ -161,7 +161,7 @@ export default function ReportBuilder() {
                 {activeSection?.title || "Select section"}
               </SelectValue>
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-background">
               {sections?.sort((a,b) => a.orderIndex - b.orderIndex).map(section => (
                 <SelectItem key={section.id} value={section.id.toString()}>
                   {section.title}
