@@ -11,6 +11,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, ExternalLink, Calendar, Video, Clock, FileText, Trash2, Pencil, GripVertical, BookOpen, Scale } from "lucide-react";
 import { format } from "date-fns";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import type { JusticeLens } from "@shared/schema";
 
 export default function Settings() {
   const { data: settings, isLoading: settingsLoading } = useSettings();
@@ -49,7 +51,8 @@ export default function Settings() {
     slug: "",
     orderIndex: 0
   });
-  const [editingLens, setEditingLens] = useState<number | null>(null);
+  const [editingLens, setEditingLens] = useState<JusticeLens | null>(null);
+  const [editLensForm, setEditLensForm] = useState({ label: "", slug: "" });
 
   const getSetting = (key: string) => settings?.find(s => s.key === key)?.value || "";
 
@@ -104,6 +107,27 @@ export default function Settings() {
 
   const handleDeleteLens = (id: number) => {
     deleteLens(id);
+  };
+
+  const openEditLensDialog = (lens: JusticeLens) => {
+    setEditingLens(lens);
+    setEditLensForm({ label: lens.label, slug: lens.slug });
+  };
+
+  const handleSaveLens = () => {
+    if (!editingLens || !editLensForm.label || !editLensForm.slug) return;
+    updateLens({ 
+      id: editingLens.id, 
+      data: { 
+        label: editLensForm.label, 
+        slug: editLensForm.slug,
+        orderIndex: editingLens.orderIndex 
+      } 
+    }, {
+      onSuccess: () => {
+        setEditingLens(null);
+      }
+    });
   };
 
   if (settingsLoading || meetingsLoading || sectionsLoading || lensesLoading) return <PageLayout title="Settings">Loading...</PageLayout>;
@@ -386,35 +410,15 @@ export default function Settings() {
                       <div className="flex items-center gap-3 flex-1">
                         <GripVertical className="h-4 w-4 text-slate-300" />
                         <div className="flex-1">
-                          {editingLens === lens.id ? (
-                            <Input 
-                              defaultValue={lens.label}
-                              className="h-8"
-                              onBlur={(e) => {
-                                updateLens({ id: lens.id, data: { label: e.target.value } });
-                                setEditingLens(null);
-                              }}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  updateLens({ id: lens.id, data: { label: e.currentTarget.value } });
-                                  setEditingLens(null);
-                                }
-                              }}
-                              autoFocus
-                            />
-                          ) : (
-                            <>
-                              <p className="font-medium text-slate-900">{lens.label}</p>
-                              <p className="text-xs text-muted-foreground">{lens.slug}</p>
-                            </>
-                          )}
+                          <p className="font-medium text-slate-900">{lens.label}</p>
+                          <p className="text-xs text-muted-foreground">{lens.slug}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <Button 
                           size="icon" 
                           variant="ghost" 
-                          onClick={() => setEditingLens(lens.id)}
+                          onClick={() => openEditLensDialog(lens)}
                           data-testid={`button-edit-lens-${lens.id}`}
                         >
                           <Pencil className="h-4 w-4" />
@@ -446,6 +450,41 @@ export default function Settings() {
                 )}
               </div>
             </div>
+
+            {/* Edit Lens Dialog */}
+            <Dialog open={!!editingLens} onOpenChange={(open) => !open && setEditingLens(null)}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Edit Justice Lens</DialogTitle>
+                  <DialogDescription>Update the label and identifier for this lens.</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label>Label (displayed to users)</Label>
+                    <Input 
+                      value={editLensForm.label}
+                      onChange={(e) => setEditLensForm({ ...editLensForm, label: e.target.value })}
+                      placeholder="e.g. Who benefits?"
+                      data-testid="input-edit-lens-label"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Slug (unique identifier)</Label>
+                    <Input 
+                      value={editLensForm.slug}
+                      onChange={(e) => setEditLensForm({ ...editLensForm, slug: e.target.value.toLowerCase().replace(/\s+/g, '_') })}
+                      placeholder="e.g. who_benefits"
+                      data-testid="input-edit-lens-slug"
+                    />
+                    <p className="text-xs text-muted-foreground">Used internally to identify this lens. Use lowercase letters and underscores.</p>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setEditingLens(null)}>Cancel</Button>
+                  <Button onClick={handleSaveLens} data-testid="button-save-lens">Save Changes</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </CardContent>
         </Card>
 
