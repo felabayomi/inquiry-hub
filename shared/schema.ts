@@ -146,4 +146,16 @@ export type Meeting = typeof meetings.$inferSelect;
 export type ReportSection = typeof reportSections.$inferSelect;
 export type ReportVersion = typeof reportVersions.$inferSelect;
 export type Comment = typeof comments.$inferSelect;
+export type InquiryComment = typeof inquiryComments.$inferSelect;
 export type AppSetting = typeof appSettings.$inferSelect;
+
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type InsertInquiry = z.infer<typeof insertInquirySchema>;
+export type InsertReflection = z.infer<typeof insertReflectionSchema>;
+export type InsertResource = z.infer<typeof insertResourceSchema>;
+export type InsertMeeting = z.infer<typeof insertMeetingSchema>;
+export type InsertReportSection = z.infer<typeof insertReportSectionSchema>;
+export type InsertReportVersion = z.infer<typeof insertReportVersionSchema>;
+export type InsertComment = z.infer<typeof insertCommentSchema>;
+export type InsertInquiryComment = z.infer<typeof insertInquiryCommentSchema>;
+export type InsertSetting = z.infer<typeof insertSettingSchema>;

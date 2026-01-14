@@ -1,8 +1,8 @@
 import { db } from "./db";
 import { 
-  users, inquiries, reflections, resources, meetings, reportSections, reportVersions, comments, appSettings,
-  type User, type Inquiry, type Reflection, type Resource, type Meeting, type ReportSection, type ReportVersion, type Comment, type AppSetting,
-  type InsertUser, type InsertInquiry, type InsertReflection, type InsertResource, type InsertMeeting, type InsertReportVersion, type InsertComment, type InsertSetting
+  users, inquiries, reflections, resources, meetings, reportSections, reportVersions, comments, appSettings, inquiryComments,
+  type User, type Inquiry, type Reflection, type Resource, type Meeting, type ReportSection, type ReportVersion, type Comment, type AppSetting, type InquiryComment,
+  type InsertUser, type InsertInquiry, type InsertReflection, type InsertResource, type InsertMeeting, type InsertReportVersion, type InsertComment, type InsertSetting, type InsertInquiryComment
 } from "@shared/schema";
 import { eq, desc, and } from "drizzle-orm";
 import session from "express-session";
@@ -35,8 +35,9 @@ export interface IStorage {
   updateMeeting(id: number, updates: Partial<InsertMeeting>): Promise<Meeting>;
 
   // Admin Cohort Overview
-  getAllInquiries(): Promise<(Inquiry & { user: User, reflections: Reflection[], comments: (any)[] })[]>;
-  addInquiryComment(comment: any): Promise<any>;
+  getAllInquiries(): Promise<(Inquiry & { user: User, reflections: Reflection[], comments: (InquiryComment & { user: User })[] })[]>;
+  getInquiryComments(inquiryId: number): Promise<(InquiryComment & { user: User })[]>;
+  addInquiryComment(comment: InsertInquiryComment): Promise<InquiryComment>;
 
   // Report
   getReportSections(): Promise<ReportSection[]>;
@@ -143,19 +144,37 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-  async getAllInquiries(): Promise<(Inquiry & { user: User, reflections: Reflection[], comments: (any)[] })[]> {
-    return await db.query.inquiries.findMany({
+  async getAllInquiries(): Promise<(Inquiry & { user: User, reflections: Reflection[], comments: (InquiryComment & { user: User })[] })[]> {
+    const results = await db.query.inquiries.findMany({
       with: {
         user: true,
         reflections: {
           orderBy: desc(reflections.createdAt)
         },
       }
-    }) as any;
+    });
+    
+    // Get comments for each inquiry
+    const inquiriesWithComments = await Promise.all(
+      results.map(async (inquiry) => {
+        const comments = await this.getInquiryComments(inquiry.id);
+        return { ...inquiry, comments };
+      })
+    );
+    
+    return inquiriesWithComments;
   }
 
-  async addInquiryComment(comment: any): Promise<any> {
-    const [newComment] = await db.insert((schema as any).inquiryComments).values(comment).returning();
+  async getInquiryComments(inquiryId: number): Promise<(InquiryComment & { user: User })[]> {
+    return await db.query.inquiryComments.findMany({
+      where: eq(inquiryComments.inquiryId, inquiryId),
+      orderBy: desc(inquiryComments.createdAt),
+      with: { user: true }
+    });
+  }
+
+  async addInquiryComment(comment: InsertInquiryComment): Promise<InquiryComment> {
+    const [newComment] = await db.insert(inquiryComments).values(comment).returning();
     return newComment;
   }
 
