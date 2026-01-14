@@ -216,6 +216,38 @@ export default function Account() {
                     <li><strong>New Badge</strong> - Unread posts are highlighted with a "New" badge</li>
                     <li><strong>Reactions</strong> - React to posts with Insightful, Well Written, Makes Me Think, or Love This</li>
                     <li><strong>Unread Counts</strong> - Section tabs show how many new posts you haven't read</li>
+                    <li><Bot className="h-3 w-3 inline mr-1" /><strong>AI Synthesis</strong> - Click "AI Synthesis" to get an AI-generated summary of all contributions in a section</li>
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="ai-insights">
+                <AccordionTrigger className="text-left">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    <span>AI Insights - Smart Summaries</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="text-sm text-muted-foreground space-y-2 pl-6">
+                  <p>The <strong>AI Insights</strong> page helps you synthesize your learning journey:</p>
+                  <ul className="list-disc pl-4 space-y-1">
+                    <li><strong>My Journey Summary</strong> - Generate an AI summary of your inquiries, reflections, and contributions</li>
+                    <li><strong>Key Themes</strong> - See patterns and themes across your work</li>
+                    <li><strong>Notable Quotes</strong> - AI highlights important insights from your writing</li>
+                    <li><strong>Open Questions</strong> - Discover questions emerging from your research</li>
+                    <li><strong>Next Steps</strong> - Get AI-suggested actions to continue your inquiry</li>
+                    <li><strong>Past Summaries</strong> - View previously generated summaries</li>
+                  </ul>
+                  <p className="pt-2 font-medium">Section Synthesis (in Report Builder):</p>
+                  <ul className="list-disc pl-4 space-y-1">
+                    <li>Click <strong>AI Synthesis</strong> on any report section to summarize all contributions</li>
+                    <li>Great for identifying common themes across cohort members' posts</li>
+                    <li>Helps synthesize collective thinking before writing final drafts</li>
+                  </ul>
+                  <p className="pt-2 font-medium">Privacy:</p>
+                  <ul className="list-disc pl-4 space-y-1">
+                    <li>Control AI access to your private reflections in Account Settings</li>
+                    <li>Private content is never shared with other cohort members</li>
                   </ul>
                 </AccordionContent>
               </AccordionItem>
