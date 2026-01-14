@@ -47,6 +47,12 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 
+function escapeHtml(text: string): string {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 const REACTION_TYPES = [
   { type: "insightful", icon: Lightbulb, label: "Insightful", color: "text-yellow-500" },
   { type: "well_written", icon: Sparkles, label: "Well written", color: "text-blue-500" },
@@ -441,34 +447,34 @@ function AiSynthesisDialog({
       <!DOCTYPE html>
       <html>
         <head>
-          <title>AI Synthesis: ${sectionTitle}</title>
+          <title>AI Synthesis: ${escapeHtml(sectionTitle)}</title>
           ${styles}
         </head>
         <body>
-          <h1>AI Synthesis: ${sectionTitle}</h1>
-          <div class="generated-at">Generated: ${date}</div>
+          <h1>AI Synthesis: ${escapeHtml(sectionTitle)}</h1>
+          <div class="generated-at">Generated: ${escapeHtml(date)}</div>
           
           <h2>Summary</h2>
-          <p>${synthesis.highLevelSummary}</p>
+          <p>${escapeHtml(synthesis.highLevelSummary)}</p>
           
           ${synthesis.keyThemes.length > 0 ? `
             <h2>Key Themes</h2>
-            <div>${synthesis.keyThemes.map(t => `<span class="theme-tag">${t}</span>`).join('')}</div>
+            <div>${synthesis.keyThemes.map(t => `<span class="theme-tag">${escapeHtml(t)}</span>`).join('')}</div>
           ` : ''}
           
           ${synthesis.notableQuotes.length > 0 ? `
             <h2>Notable Quotes</h2>
-            ${synthesis.notableQuotes.map(q => `<blockquote>"${q.text}"</blockquote>`).join('')}
+            ${synthesis.notableQuotes.map(q => `<blockquote>"${escapeHtml(q.text)}"</blockquote>`).join('')}
           ` : ''}
           
           ${synthesis.openQuestions.length > 0 ? `
             <h2>Open Questions</h2>
-            <ul>${synthesis.openQuestions.map(q => `<li>${q}</li>`).join('')}</ul>
+            <ul>${synthesis.openQuestions.map(q => `<li>${escapeHtml(q)}</li>`).join('')}</ul>
           ` : ''}
           
           ${synthesis.recommendedNextSteps.length > 0 ? `
             <h2>Recommended Next Steps</h2>
-            <ul>${synthesis.recommendedNextSteps.map((s, i) => `<li><strong>${i + 1}.</strong> ${s}</li>`).join('')}</ul>
+            <ul>${synthesis.recommendedNextSteps.map((s, i) => `<li><strong>${i + 1}.</strong> ${escapeHtml(s)}</li>`).join('')}</ul>
           ` : ''}
         </body>
       </html>

@@ -26,6 +26,12 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 
+function escapeHtml(text: string): string {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 function SummaryCard({ summary, title, generatedAt }: { summary: AiSummaryOutput; title: string; generatedAt?: string }) {
   const handlePrint = () => {
     const printWindow = window.open('', '_blank');
@@ -64,41 +70,41 @@ function SummaryCard({ summary, title, generatedAt }: { summary: AiSummaryOutput
       <!DOCTYPE html>
       <html>
         <head>
-          <title>${title}</title>
+          <title>${escapeHtml(title)}</title>
           ${styles}
         </head>
         <body>
-          <h1>${title}</h1>
-          <div class="generated-at">Generated: ${date}</div>
+          <h1>${escapeHtml(title)}</h1>
+          <div class="generated-at">Generated: ${escapeHtml(date)}</div>
           
           <h2>Summary</h2>
-          <p>${summary.highLevelSummary}</p>
+          <p>${escapeHtml(summary.highLevelSummary)}</p>
           
           ${summary.keyThemes.length > 0 ? `
             <h2>Key Themes</h2>
-            <div>${summary.keyThemes.map(t => `<span class="theme-tag">${t}</span>`).join('')}</div>
+            <div>${summary.keyThemes.map(t => `<span class="theme-tag">${escapeHtml(t)}</span>`).join('')}</div>
           ` : ''}
           
           ${summary.notableQuotes.length > 0 ? `
             <h2>Notable Excerpts</h2>
-            ${summary.notableQuotes.map(q => `<blockquote>"${q.text}"</blockquote>`).join('')}
+            ${summary.notableQuotes.map(q => `<blockquote>"${escapeHtml(q.text)}"</blockquote>`).join('')}
           ` : ''}
           
           ${summary.openQuestions.length > 0 ? `
             <h2>Open Questions</h2>
-            <ul>${summary.openQuestions.map(q => `<li>${q}</li>`).join('')}</ul>
+            <ul>${summary.openQuestions.map(q => `<li>${escapeHtml(q)}</li>`).join('')}</ul>
           ` : ''}
           
           ${summary.recommendedNextSteps.length > 0 ? `
             <h2>Recommended Next Steps</h2>
-            <ul>${summary.recommendedNextSteps.map((s, i) => `<li><strong>${i + 1}.</strong> ${s}</li>`).join('')}</ul>
+            <ul>${summary.recommendedNextSteps.map((s, i) => `<li><strong>${i + 1}.</strong> ${escapeHtml(s)}</li>`).join('')}</ul>
           ` : ''}
           
           ${summary.evidence.length > 0 ? `
             <h2>Supporting Evidence</h2>
             ${summary.evidence.slice(0, 5).map(ev => `
-              <p><strong>${ev.authorName || 'Unknown'}</strong> (${ev.sourceType})<br/>
-              <em>${ev.excerpt}</em></p>
+              <p><strong>${escapeHtml(ev.authorName || 'Unknown')}</strong> (${escapeHtml(ev.sourceType)})<br/>
+              <em>${escapeHtml(ev.excerpt)}</em></p>
             `).join('')}
           ` : ''}
         </body>
@@ -326,7 +332,7 @@ export default function AIInsights() {
                             <!DOCTYPE html>
                             <html>
                               <head>
-                                <title>${typeLabel} - ${date}</title>
+                                <title>${escapeHtml(typeLabel)} - ${escapeHtml(date)}</title>
                                 <style>
                                   body { font-family: 'Georgia', serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 40px; }
                                   h1 { font-size: 24px; margin-bottom: 8px; }
@@ -341,14 +347,14 @@ export default function AIInsights() {
                                 </style>
                               </head>
                               <body>
-                                <h1>${typeLabel}</h1>
-                                <div class="generated-at">Generated: ${date}</div>
+                                <h1>${escapeHtml(typeLabel)}</h1>
+                                <div class="generated-at">Generated: ${escapeHtml(date)}</div>
                                 <h2>Summary</h2>
-                                <p>${content.highLevelSummary}</p>
-                                ${content.keyThemes.length > 0 ? `<h2>Key Themes</h2><div>${content.keyThemes.map(t => `<span class="theme-tag">${t}</span>`).join('')}</div>` : ''}
-                                ${content.notableQuotes.length > 0 ? `<h2>Notable Excerpts</h2>${content.notableQuotes.map(q => `<blockquote>"${q.text}"</blockquote>`).join('')}` : ''}
-                                ${content.openQuestions.length > 0 ? `<h2>Open Questions</h2><ul>${content.openQuestions.map(q => `<li>${q}</li>`).join('')}</ul>` : ''}
-                                ${content.recommendedNextSteps.length > 0 ? `<h2>Recommended Next Steps</h2><ul>${content.recommendedNextSteps.map((s, i) => `<li><strong>${i + 1}.</strong> ${s}</li>`).join('')}</ul>` : ''}
+                                <p>${escapeHtml(content.highLevelSummary)}</p>
+                                ${content.keyThemes.length > 0 ? `<h2>Key Themes</h2><div>${content.keyThemes.map(t => `<span class="theme-tag">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+                                ${content.notableQuotes.length > 0 ? `<h2>Notable Excerpts</h2>${content.notableQuotes.map(q => `<blockquote>"${escapeHtml(q.text)}"</blockquote>`).join('')}` : ''}
+                                ${content.openQuestions.length > 0 ? `<h2>Open Questions</h2><ul>${content.openQuestions.map(q => `<li>${escapeHtml(q)}</li>`).join('')}</ul>` : ''}
+                                ${content.recommendedNextSteps.length > 0 ? `<h2>Recommended Next Steps</h2><ul>${content.recommendedNextSteps.map((s, i) => `<li><strong>${i + 1}.</strong> ${escapeHtml(s)}</li>`).join('')}</ul>` : ''}
                               </body>
                             </html>
                           `);
