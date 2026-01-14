@@ -16,6 +16,7 @@ import ReportBuilder from "@/pages/ReportBuilder";
 import Settings from "@/pages/Settings";
 import CohortOverview from "@/pages/CohortOverview";
 import Account from "@/pages/Account";
+import AIInsights from "@/pages/AIInsights";
 import NotFound from "@/pages/not-found";
 
 function ProtectedRoute({ component: Component, adminOnly = false }: { component: React.ComponentType, adminOnly?: boolean }) {
@@ -91,6 +92,10 @@ function Router() {
 
       <Route path="/account">
         <ProtectedRoute component={Account} />
+      </Route>
+
+      <Route path="/ai-insights">
+        <ProtectedRoute component={AIInsights} />
       </Route>
 
       <Route component={NotFound} />

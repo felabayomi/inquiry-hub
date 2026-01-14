@@ -9,8 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { 
   User, Key, Shield, Calendar, Lightbulb, Sparkles, Brain, Heart, HelpCircle,
-  BookOpen, LayoutDashboard, Search, Users, FileText, MessageSquare, Eye, Tag, Plus, CheckCircle
+  BookOpen, LayoutDashboard, Search, Users, FileText, MessageSquare, Eye, Tag, Plus, CheckCircle, Bot
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { useAiSettings, useUpdateAiSettings } from "@/hooks/use-ai";
 import { format } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -27,6 +29,10 @@ export default function Account() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  // AI Settings
+  const { data: aiSettings, isLoading: isLoadingAiSettings } = useAiSettings();
+  const { mutate: updateAiSettings, isPending: isUpdatingAiSettings } = useUpdateAiSettings();
 
   const updateUsernameMutation = useMutation({
     mutationFn: async (username: string) => {
@@ -328,6 +334,40 @@ export default function Account() {
               >
                 <Key className="h-4 w-4 mr-2" /> Change Password
               </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* AI Privacy Settings */}
+        <Card className="paper-card">
+          <CardHeader>
+            <CardTitle className="text-xl font-serif flex items-center gap-2">
+              <Bot className="h-5 w-5" /> AI Privacy Settings
+            </CardTitle>
+            <CardDescription>Control how AI features use your content.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="font-medium">Include Private Reflections in AI Summaries</Label>
+                <p className="text-sm text-muted-foreground">
+                  When enabled, your private reflections will be included when generating personal AI journey summaries. 
+                  Private content is never shared with other cohort members.
+                </p>
+              </div>
+              <Switch
+                checked={aiSettings?.includePrivateInAI ?? true}
+                onCheckedChange={(checked) => updateAiSettings({ includePrivateInAI: checked })}
+                disabled={isLoadingAiSettings || isUpdatingAiSettings}
+                data-testid="switch-include-private-ai"
+              />
+            </div>
+            <div className="bg-muted/50 rounded-lg p-4">
+              <p className="text-sm text-muted-foreground">
+                <strong>How AI features work:</strong> The AI Insights feature analyzes your inquiry journey 
+                (questions, reflections, and contributions) to provide personalized summaries and identify themes. 
+                Your private reflections are only used in your personal summaries and are never visible to other members.
+              </p>
             </div>
           </CardContent>
         </Card>

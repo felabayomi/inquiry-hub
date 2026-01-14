@@ -11,7 +11,8 @@ import {
   Home,
   Menu,
   X,
-  Users
+  Users,
+  Sparkles
 } from "lucide-react";
 import { useUser, useLogout } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
@@ -30,6 +31,7 @@ export function Sidebar() {
     { href: "/resources", label: "Shared Resources", icon: Library },
     { href: "/meetings", label: "Meetings", icon: CalendarDays },
     { href: "/report", label: "Report Builder", icon: FileText },
+    { href: "/ai-insights", label: "AI Insights", icon: Sparkles },
     { href: "/account", label: "My Account", icon: User },
   ];
 

@@ -121,6 +121,61 @@ export const postReactions = pgTable("post_reactions", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// === AI CONTENT CHUNKS (For retrieval-based summarization) ===
+export const aiContentChunks = pgTable("ai_content_chunks", {
+  id: serial("id").primaryKey(),
+  sourceType: text("source_type").notNull(), // "reflection", "report_post", "comment", "resource", "inquiry"
+  sourceId: integer("source_id").notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  sectionId: integer("section_id").references(() => reportSections.id), // nullable
+  chunkIndex: integer("chunk_index").notNull().default(0),
+  chunkText: text("chunk_text").notNull(),
+  startOffset: integer("start_offset"),
+  endOffset: integer("end_offset"),
+  contentHash: text("content_hash").notNull(),
+  metadata: jsonb("metadata"), // { tags, justiceLenses, date }
+  visibility: text("visibility").notNull().default("cohort"), // "private", "group", "cohort"
+  excludeFromAI: boolean("exclude_from_ai").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// === AI SUMMARIES (Stored generated summaries) ===
+export const aiSummaries = pgTable("ai_summaries", {
+  id: serial("id").primaryKey(),
+  type: text("type").notNull(), // "my_journey", "section_draft", "weekly_digest"
+  scope: text("scope").notNull(), // "personal", "group", "cohort"
+  userId: integer("user_id").references(() => users.id), // For personal summaries
+  sectionId: integer("section_id").references(() => reportSections.id), // For section summaries
+  timeRangeStart: timestamp("time_range_start"),
+  timeRangeEnd: timestamp("time_range_end"),
+  content: jsonb("content").notNull(), // Structured output JSON
+  evidenceChunkIds: integer("evidence_chunk_ids").array(),
+  generatedAt: timestamp("generated_at").defaultNow(),
+});
+
+// === USER AI SETTINGS ===
+export const userAiSettings = pgTable("user_ai_settings", {
+  userId: integer("user_id").references(() => users.id).primaryKey(),
+  includePrivateInAI: boolean("include_private_in_ai").notNull().default(false),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// === CONVERSATIONS (For chat integration) ===
+export const conversations = pgTable("conversations", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// === MESSAGES (Chat messages) ===
+export const messages = pgTable("messages", {
+  id: serial("id").primaryKey(),
+  conversationId: integer("conversation_id").references(() => conversations.id).notNull(),
+  role: text("role").notNull(), // "user", "assistant"
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // === RELATIONS ===
 export const inquiriesRelations = relations(inquiries, ({ one, many }) => ({
   user: one(users, { fields: [inquiries.userId], references: [users.id] }),
@@ -174,6 +229,11 @@ export const insertSettingSchema = createInsertSchema(appSettings);
 export const insertJusticeLensSchema = createInsertSchema(justiceLenses).omit({ id: true });
 export const insertPostReadSchema = createInsertSchema(postReads).omit({ id: true, readAt: true });
 export const insertPostReactionSchema = createInsertSchema(postReactions).omit({ id: true, createdAt: true });
+export const insertAiContentChunkSchema = createInsertSchema(aiContentChunks).omit({ id: true, createdAt: true });
+export const insertAiSummarySchema = createInsertSchema(aiSummaries).omit({ id: true, generatedAt: true });
+export const insertUserAiSettingsSchema = createInsertSchema(userAiSettings).omit({ updatedAt: true });
+export const insertConversationSchema = createInsertSchema(conversations).omit({ id: true, createdAt: true });
+export const insertMessageSchema = createInsertSchema(messages).omit({ id: true, createdAt: true });
 
 // === EXPORTS ===
 export type User = typeof users.$inferSelect;
@@ -189,6 +249,11 @@ export type AppSetting = typeof appSettings.$inferSelect;
 export type JusticeLens = typeof justiceLenses.$inferSelect;
 export type PostRead = typeof postReads.$inferSelect;
 export type PostReaction = typeof postReactions.$inferSelect;
+export type AiContentChunk = typeof aiContentChunks.$inferSelect;
+export type AiSummary = typeof aiSummaries.$inferSelect;
+export type UserAiSettings = typeof userAiSettings.$inferSelect;
+export type Conversation = typeof conversations.$inferSelect;
+export type ChatMessage = typeof messages.$inferSelect;
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertInquiry = z.infer<typeof insertInquirySchema>;
@@ -203,3 +268,8 @@ export type InsertSetting = z.infer<typeof insertSettingSchema>;
 export type InsertJusticeLens = z.infer<typeof insertJusticeLensSchema>;
 export type InsertPostRead = z.infer<typeof insertPostReadSchema>;
 export type InsertPostReaction = z.infer<typeof insertPostReactionSchema>;
+export type InsertAiContentChunk = z.infer<typeof insertAiContentChunkSchema>;
+export type InsertAiSummary = z.infer<typeof insertAiSummarySchema>;
+export type InsertUserAiSettings = z.infer<typeof insertUserAiSettingsSchema>;
+export type InsertConversation = z.infer<typeof insertConversationSchema>;
+export type InsertMessage = z.infer<typeof insertMessageSchema>;

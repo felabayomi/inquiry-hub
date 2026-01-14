@@ -4,6 +4,15 @@ import { setupAuth, hashPassword, comparePasswords } from "./auth";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
+import {
+  indexContent,
+  generateJourneySummary,
+  generateSectionSynthesis,
+  getRecentSummaries,
+  getSectionSummaries,
+  getUserAiSettings,
+  updateUserAiSettings,
+} from "./ai-service";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -329,6 +338,58 @@ export async function registerRoutes(
       return res.status(404).json({ message: "Justice lens not found" });
     }
     res.json({ success: true });
+  });
+
+  // === AI INSIGHTS ===
+  app.get('/api/ai/settings', async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const settings = await getUserAiSettings(req.user.id);
+    res.json(settings);
+  });
+
+  app.patch('/api/ai/settings', async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const schema = z.object({ includePrivateInAI: z.boolean() });
+    const { includePrivateInAI } = schema.parse(req.body);
+    await updateUserAiSettings(req.user.id, includePrivateInAI);
+    res.json({ success: true });
+  });
+
+  app.post('/api/ai/journey-summary', async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    try {
+      const summary = await generateJourneySummary(req.user.id);
+      res.json(summary);
+    } catch (error) {
+      console.error("Error generating journey summary:", error);
+      res.status(500).json({ message: "Failed to generate summary" });
+    }
+  });
+
+  app.post('/api/ai/section-synthesis/:sectionId', async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const sectionId = Number(req.params.sectionId);
+    try {
+      const synthesis = await generateSectionSynthesis(sectionId);
+      res.json(synthesis);
+    } catch (error) {
+      console.error("Error generating section synthesis:", error);
+      res.status(500).json({ message: "Failed to generate synthesis" });
+    }
+  });
+
+  app.get('/api/ai/summaries', async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const type = req.query.type as string | undefined;
+    const summaries = await getRecentSummaries(req.user.id, type);
+    res.json(summaries);
+  });
+
+  app.get('/api/ai/section-summaries/:sectionId', async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const sectionId = Number(req.params.sectionId);
+    const summaries = await getSectionSummaries(sectionId);
+    res.json(summaries);
   });
 
   // === SEED DATA ===

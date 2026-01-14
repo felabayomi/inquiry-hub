@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import { PageLayout } from "@/components/layout/PageLayout";
 import { useMyInquiry, useUpsertInquiry, useCreateReflection, useDeleteReflection } from "@/hooks/use-inquiries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
-import { PenLine, Save, Trash2 } from "lucide-react";
+import { PenLine, Save, Trash2, Sparkles } from "lucide-react";
 
 export default function Inquiry() {
   const { data: inquiry, isLoading } = useMyInquiry();
@@ -55,6 +56,14 @@ export default function Inquiry() {
     <PageLayout 
       title="My Inquiry" 
       description="Define your research question and track your learning journey."
+      action={
+        <Link href="/ai-insights">
+          <Button variant="outline" size="sm" data-testid="button-ai-insights">
+            <Sparkles className="h-4 w-4 mr-2" />
+            AI Summary
+          </Button>
+        </Link>
+      }
     >
       <div className="grid gap-8">
         {/* Top Section: Question & Pathway */}
