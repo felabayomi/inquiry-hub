@@ -1,0 +1,79 @@
+Yes — that plan works and it’s a solid, “real-world” way to build it on Express + Postgres (Drizzle) + React. It addresses the four gaps in a practical way.
+
+A few adjustments will make it more adequate and prevent pain later:
+
+What’s strong (keep it)
+	•	Chunk table + auto-indexing on save is exactly right.
+	•	Visibility + privacy toggle is the right baseline for trust.
+	•	Citations/evidence map makes summaries verifiable (huge for adoption).
+	•	Rolling summaries avoids “start from scratch” and supports continuity.
+	•	Two modes (Personal + Section) match how groups actually work.
+
+What I’d tweak so it doesn’t break as usage grows
+
+1) Don’t chunk by word count alone
+
+Chunk by structure where possible:
+	•	split by paragraphs / headings / sentences
+	•	keep chunks semantically coherent
+Word-count chunking can split ideas mid-thought and makes retrieval worse.
+
+Add fields to ai_content_chunks:
+	•	chunkIndex (order within source)
+	•	startOffset / endOffset (optional, helps highlighting)
+	•	contentHash (to detect unchanged text and avoid re-chunking)
+
+2) Add “summary scope” + “time window” explicitly
+
+In ai_summaries, include:
+	•	scope: "personal" | "group" | "cohort"
+	•	timeRangeStart, timeRangeEnd (or sinceLastVisit)
+This prevents confusion like “weekly digest for who?” and makes caching sane.
+
+3) Embeddings: optional, but plan for retrieval now
+
+Even in Phase 1, you can do decent retrieval without embeddings using:
+	•	section filter + recency + keyword match + tags
+
+But your schema should allow embeddings later without migration pain (you already did—great). When you do embeddings, you’ll need:
+	•	a vector index (pgvector) and a similarity query path
+	•	a fallback path when embeddings aren’t available
+
+4) Background “Sunday digest” in Replit: be careful
+
+Replit may not reliably run cron-like jobs depending on your setup. Safer pattern:
+	•	generate weekly digest on demand the first time someone visits after Sunday (“lazy cron”)
+	•	or trigger from an external scheduler/webhook if you have one
+
+5) Guardrails: add one more layer
+
+Add an “AI processing policy” that is enforced in code:
+	•	exclude items marked private unless consent toggle is on
+	•	exclude items marked “do not include in AI”
+	•	optionally redact emails/phone numbers before sending to the LLM
+
+Is it appropriate to start with Phase 1?
+
+Yes. Phase 1 is the right MVP if it includes:
+	•	chunking + indexing
+	•	personal summary generation
+	•	evidence links (citations)
+	•	strict permission filtering
+
+That gives immediate value while building the foundation for section synthesis and digests.
+
+One thing I’d add to your Phase 1 prompt spec
+
+Make the model output structured JSON every time (even for personal summaries), like:
+	•	highLevelSummary
+	•	keyThemes[]
+	•	notableQuotes[] (short excerpts)
+	•	openQuestions[]
+	•	recommendedNextSteps[]
+	•	evidence[] (chunk ids)
+
+Structured output makes the UI clean and prevents “wall of text.”
+
+⸻
+
+Bottom line: Yes, this works. It’s not only adequate—it’s a strong plan with just a few implementation tweaks (structured chunking, explicit scope/time windows, and safe scheduling).
