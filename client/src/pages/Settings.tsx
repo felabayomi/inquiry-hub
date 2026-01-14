@@ -60,6 +60,7 @@ export default function Settings() {
   const [editLensForm, setEditLensForm] = useState({ label: "", slug: "" });
   const [resetPasswordUser, setResetPasswordUser] = useState<User | null>(null);
   const [newPassword, setNewPassword] = useState("");
+  const [toggleAdminUser, setToggleAdminUser] = useState<User | null>(null);
 
   const getSetting = (key: string) => settings?.find(s => s.key === key)?.value || "";
 
@@ -150,8 +151,11 @@ export default function Settings() {
     });
   };
 
-  const handleToggleAdmin = (user: User) => {
-    updateRole({ id: user.id, isAdmin: !user.isAdmin });
+  const handleConfirmToggleAdmin = () => {
+    if (!toggleAdminUser) return;
+    updateRole({ id: toggleAdminUser.id, isAdmin: !toggleAdminUser.isAdmin }, {
+      onSuccess: () => setToggleAdminUser(null)
+    });
   };
 
   if (settingsLoading || meetingsLoading || sectionsLoading || lensesLoading || usersLoading) return <PageLayout title="Settings">Loading...</PageLayout>;
@@ -604,16 +608,22 @@ export default function Settings() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <Button 
-                        size="sm" 
-                        variant={user.isAdmin ? "outline" : "secondary"}
-                        onClick={() => handleToggleAdmin(user)}
-                        disabled={isUpdatingRole}
-                        data-testid={`button-toggle-admin-${user.id}`}
-                      >
-                        <Shield className="h-4 w-4 mr-1" />
-                        {user.isAdmin ? "Remove Admin" : "Make Admin"}
-                      </Button>
+                      {/* Don't show Remove Admin for the system admin account */}
+                      {!(user.username === 'admin' && user.isAdmin) && (
+                        <Button 
+                          size="sm" 
+                          variant={user.isAdmin ? "outline" : "secondary"}
+                          onClick={() => setToggleAdminUser(user)}
+                          disabled={isUpdatingRole}
+                          data-testid={`button-toggle-admin-${user.id}`}
+                        >
+                          <Shield className="h-4 w-4 mr-1" />
+                          {user.isAdmin ? "Remove Admin" : "Make Admin"}
+                        </Button>
+                      )}
+                      {user.username === 'admin' && user.isAdmin && (
+                        <Badge variant="outline" className="text-muted-foreground">System Admin</Badge>
+                      )}
                       <Button 
                         size="sm" 
                         variant="outline"
@@ -636,7 +646,7 @@ export default function Settings() {
             <DialogHeader>
               <DialogTitle>Reset Password</DialogTitle>
               <DialogDescription>
-                Set a new password for {resetPasswordUser?.fullName || resetPasswordUser?.username}.
+                You are about to reset the password for <strong>{resetPasswordUser?.fullName || resetPasswordUser?.username}</strong>. This action cannot be undone.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -655,6 +665,34 @@ export default function Settings() {
               <Button variant="outline" onClick={() => { setResetPasswordUser(null); setNewPassword(""); }}>Cancel</Button>
               <Button onClick={handleResetPassword} disabled={isUpdatingPassword || newPassword.length < 6} data-testid="button-confirm-reset-password">
                 Reset Password
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Toggle Admin Confirmation Dialog */}
+        <Dialog open={!!toggleAdminUser} onOpenChange={(open) => { if (!open) setToggleAdminUser(null); }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {toggleAdminUser?.isAdmin ? "Remove Admin Privileges" : "Grant Admin Privileges"}
+              </DialogTitle>
+              <DialogDescription>
+                {toggleAdminUser?.isAdmin 
+                  ? <>Are you sure you want to remove admin privileges from <strong>{toggleAdminUser?.fullName || toggleAdminUser?.username}</strong>? They will no longer be able to access admin settings.</>
+                  : <>Are you sure you want to make <strong>{toggleAdminUser?.fullName || toggleAdminUser?.username}</strong> an admin? They will have full access to all settings and user management.</>
+                }
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setToggleAdminUser(null)}>Cancel</Button>
+              <Button 
+                onClick={handleConfirmToggleAdmin} 
+                disabled={isUpdatingRole}
+                variant={toggleAdminUser?.isAdmin ? "destructive" : "default"}
+                data-testid="button-confirm-toggle-admin"
+              >
+                {toggleAdminUser?.isAdmin ? "Remove Admin" : "Make Admin"}
               </Button>
             </DialogFooter>
           </DialogContent>
