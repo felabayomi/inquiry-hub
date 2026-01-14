@@ -15,7 +15,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { History, MessageSquare, Tag, Save, ChevronRight, ChevronLeft } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { History, MessageSquare, Tag, Save, ChevronRight, ChevronLeft, Menu, PanelRight } from "lucide-react";
 import { format } from "date-fns";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
@@ -55,7 +57,7 @@ function ReportSidebar({
   };
 
   return (
-    <div className="w-80 border-l border-border bg-slate-50 flex flex-col h-[calc(100vh-8rem)] sticky top-24">
+    <div className="w-full lg:w-80 lg:border-l border-border bg-slate-50 flex flex-col lg:h-[calc(100vh-8rem)] lg:sticky lg:top-24">
       <Tabs defaultValue="lens" className="flex-1 flex flex-col">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="lens">Justice Lens</TabsTrigger>
@@ -97,7 +99,7 @@ function ReportSidebar({
                 <div key={comment.id} className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-sm">
                   <div className="flex justify-between items-baseline mb-1">
                     <span className="font-bold text-slate-700">{comment.author.fullName}</span>
-                    <span className="text-xs text-slate-400">{format(new Date(comment.createdAt), "MMM d")}</span>
+                    <span className="text-xs text-slate-400">{comment.createdAt ? format(new Date(comment.createdAt), "MMM d") : ""}</span>
                   </div>
                   <p className="text-slate-600">{comment.content}</p>
                 </div>
@@ -133,6 +135,8 @@ export default function ReportBuilder() {
     }
   }, [sections]);
 
+  const activeSection = sections?.find(s => s.id === activeSectionId);
+
   if (!activeSectionId) return <PageLayout title="Report Builder">Loading...</PageLayout>;
 
   return (
@@ -141,16 +145,38 @@ export default function ReportBuilder() {
       description="Collaboratively draft the cohort report."
       action={
         <div className="flex items-center text-sm text-slate-500">
-          <span className="mr-2">Autosave disabled</span>
+          <span className="mr-2 hidden sm:inline">Autosave disabled</span>
         </div>
       }
     >
-      <div className="flex gap-6 -mx-8 px-8 pb-8">
-        {/* Navigation Rail */}
-        <div className="w-48 flex-shrink-0 space-y-1">
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 -mx-4 lg:-mx-8 px-4 lg:px-8 pb-8">
+        {/* Mobile Section Selector */}
+        <div className="lg:hidden">
+          <Select 
+            value={activeSectionId?.toString()} 
+            onValueChange={(val) => setActiveSectionId(Number(val))}
+          >
+            <SelectTrigger data-testid="select-section-mobile" className="w-full">
+              <SelectValue placeholder="Select section">
+                {activeSection?.title || "Select section"}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {sections?.sort((a,b) => a.orderIndex - b.orderIndex).map(section => (
+                <SelectItem key={section.id} value={section.id.toString()}>
+                  {section.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Desktop Navigation Rail */}
+        <div className="hidden lg:block w-48 flex-shrink-0 space-y-1">
           {sections?.sort((a,b) => a.orderIndex - b.orderIndex).map(section => (
             <button
               key={section.id}
+              data-testid={`button-section-${section.id}`}
               onClick={() => setActiveSectionId(section.id)}
               className={cn(
                 "w-full text-left px-4 py-2 rounded-md text-sm transition-colors",
@@ -204,11 +230,11 @@ function SectionEditor({ sectionId }: { sectionId: number }) {
   if (isLoading) return <div className="h-96 flex items-center justify-center">Loading section...</div>;
 
   return (
-    <div className="flex gap-6">
+    <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
       <div className="flex-1">
-        <Card className="min-h-[600px] flex flex-col shadow-md border-slate-200">
-          <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-white rounded-t-xl sticky top-0 z-10">
-            <div className="flex gap-2">
+        <Card className="min-h-[400px] lg:min-h-[600px] flex flex-col shadow-md border-slate-200">
+          <div className="p-3 lg:p-4 border-b border-slate-100 flex flex-wrap justify-between items-center gap-2 bg-white rounded-t-xl sticky top-0 z-10">
+            <div className="flex gap-2 flex-wrap">
               {tags.map(tag => (
                 <Badge key={tag} variant="outline" className="text-xs bg-slate-50">
                   {tag.replace('_', ' ')}
@@ -218,8 +244,9 @@ function SectionEditor({ sectionId }: { sectionId: number }) {
             <div className="flex gap-2">
                <Dialog>
                 <DialogTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    <History className="h-4 w-4 mr-2" /> History
+                  <Button variant="ghost" size="sm" data-testid="button-history">
+                    <History className="h-4 w-4 lg:mr-2" />
+                    <span className="hidden lg:inline">History</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -229,7 +256,7 @@ function SectionEditor({ sectionId }: { sectionId: number }) {
                        <div key={version.id} className="border-b pb-4">
                          <div className="flex justify-between text-sm mb-2">
                             <span className="font-bold">{version.author.fullName}</span>
-                            <span className="text-muted-foreground">{format(new Date(version.createdAt), "PP p")}</span>
+                            <span className="text-muted-foreground">{version.createdAt ? format(new Date(version.createdAt), "PP p") : ""}</span>
                          </div>
                          <p className="text-sm text-slate-600 line-clamp-3 font-serif bg-slate-50 p-2 rounded">{version.content}</p>
                        </div>
@@ -237,22 +264,39 @@ function SectionEditor({ sectionId }: { sectionId: number }) {
                    </div>
                 </DialogContent>
                </Dialog>
-              <Button onClick={handleSave} disabled={isSaving} size="sm">
-                <Save className="h-4 w-4 mr-2" />
-                {isSaving ? "Saving..." : "Save Draft"}
+
+              {/* Mobile sidebar trigger */}
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="sm" className="lg:hidden" data-testid="button-sidebar-mobile">
+                    <PanelRight className="h-4 w-4" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-[300px] p-0">
+                  <ReportSidebar sectionId={sectionId} tags={tags} setTags={setTags} />
+                </SheetContent>
+              </Sheet>
+
+              <Button onClick={handleSave} disabled={isSaving} size="sm" data-testid="button-save-draft">
+                <Save className="h-4 w-4 lg:mr-2" />
+                <span className="hidden lg:inline">{isSaving ? "Saving..." : "Save Draft"}</span>
               </Button>
             </div>
           </div>
           <Textarea 
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="flex-1 border-0 focus-visible:ring-0 resize-none p-8 font-serif text-lg leading-relaxed rounded-b-xl rounded-t-none"
+            className="flex-1 border-0 focus-visible:ring-0 resize-none p-4 lg:p-8 font-serif text-base lg:text-lg leading-relaxed rounded-b-xl rounded-t-none"
             placeholder="Start drafting this section..."
+            data-testid="textarea-content"
           />
         </Card>
       </div>
 
-      <ReportSidebar sectionId={sectionId} tags={tags} setTags={setTags} />
+      {/* Desktop sidebar - hidden on mobile */}
+      <div className="hidden lg:block">
+        <ReportSidebar sectionId={sectionId} tags={tags} setTags={setTags} />
+      </div>
     </div>
   );
 }
