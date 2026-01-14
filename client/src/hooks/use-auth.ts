@@ -11,6 +11,10 @@ export function useUser() {
   const { data: user, isLoading, error } = useQuery<User | null>({
     queryKey: ["/api/user"],
     retry: false,
+    staleTime: Infinity,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
     queryFn: async () => {
       const res = await fetch(api.auth.me.path, { credentials: "include" });
       if (res.status === 401) return null;
