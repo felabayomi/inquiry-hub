@@ -125,6 +125,9 @@ export async function registerRoutes(
     if (!req.isAuthenticated() || !req.user.isAdmin) return res.sendStatus(401);
     const input = api.report.updateSection.input.parse(req.body);
     const section = await storage.updateReportSection(Number(req.params.id), input);
+    if (!section) {
+      return res.status(404).json({ message: "Section not found" });
+    }
     res.json(section);
   });
 

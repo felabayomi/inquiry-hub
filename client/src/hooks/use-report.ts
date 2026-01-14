@@ -9,6 +9,8 @@ type VersionHistory = z.infer<typeof api.report.history.responses[200]>;
 type CommentsList = z.infer<typeof api.report.comments.responses[200]>;
 type SaveVersionInput = z.infer<typeof api.report.saveVersion.input>;
 type AddCommentInput = z.infer<typeof api.report.addComment.input>;
+type CreateSectionInput = z.infer<typeof api.report.createSection.input>;
+type UpdateSectionInput = z.infer<typeof api.report.updateSection.input>;
 
 export function useReportSections() {
   return useQuery<SectionsList>({
@@ -101,6 +103,77 @@ export function useAddComment() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: [api.report.comments.path, variables.sectionId] });
       toast({ title: "Comment Added" });
+    },
+  });
+}
+
+// Admin section management hooks
+export function useCreateSection() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (data: CreateSectionInput) => {
+      const res = await fetch(api.report.createSection.path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to create section");
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.report.sections.path] });
+      toast({ title: "Section Created" });
+    },
+  });
+}
+
+export function useUpdateSection() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: UpdateSectionInput }) => {
+      const res = await fetch(`/api/admin/report/sections/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to update section");
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.report.sections.path] });
+      toast({ title: "Section Updated" });
+    },
+    onError: () => {
+      toast({ title: "Failed to update section", variant: "destructive" });
+    },
+  });
+}
+
+export function useDeleteSection() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/admin/report/sections/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to delete section");
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.report.sections.path] });
+      toast({ title: "Section Deleted" });
+    },
+    onError: () => {
+      toast({ title: "Failed to delete section", variant: "destructive" });
     },
   });
 }

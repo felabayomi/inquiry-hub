@@ -2,13 +2,15 @@ import { useState } from "react";
 import { PageLayout } from "@/components/layout/PageLayout";
 import { useSettings, useUpdateSetting } from "@/hooks/use-settings";
 import { useMeetings, useCreateMeeting, useUpdateMeeting } from "@/hooks/use-meetings";
+import { useReportSections, useCreateSection, useUpdateSection, useDeleteSection } from "@/hooks/use-report";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, ExternalLink, Calendar, Video, Clock, FileText } from "lucide-react";
+import { Plus, ExternalLink, Calendar, Video, Clock, FileText, Trash2, Pencil, GripVertical, BookOpen } from "lucide-react";
 import { format } from "date-fns";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 export default function Settings() {
   const { data: settings, isLoading: settingsLoading } = useSettings();
@@ -16,6 +18,10 @@ export default function Settings() {
   const { data: meetings, isLoading: meetingsLoading } = useMeetings();
   const { mutate: createMeeting } = useCreateMeeting();
   const { mutate: updateMeeting } = useUpdateMeeting();
+  const { data: sections, isLoading: sectionsLoading } = useReportSections();
+  const { mutate: createSection, isPending: isCreatingSection } = useCreateSection();
+  const { mutate: updateSection } = useUpdateSection();
+  const { mutate: deleteSection, isPending: isDeletingSection } = useDeleteSection();
   const { toast } = useToast();
 
   const [newMeeting, setNewMeeting] = useState({
@@ -24,6 +30,15 @@ export default function Settings() {
     zoomLink: "",
     agenda: ""
   });
+
+  const [newSection, setNewSection] = useState({
+    title: "",
+    slug: "",
+    description: "",
+    orderIndex: 0
+  });
+
+  const [editingSection, setEditingSection] = useState<number | null>(null);
 
   const getSetting = (key: string) => settings?.find(s => s.key === key)?.value || "";
 
@@ -44,7 +59,25 @@ export default function Settings() {
     });
   };
 
-  if (settingsLoading || meetingsLoading) return <PageLayout title="Settings">Loading...</PageLayout>;
+  const handleCreateSection = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newSection.title || !newSection.slug) return;
+    const nextOrder = (sections?.length || 0) + 1;
+    createSection({
+      ...newSection,
+      orderIndex: nextOrder,
+    }, {
+      onSuccess: () => {
+        setNewSection({ title: "", slug: "", description: "", orderIndex: 0 });
+      }
+    });
+  };
+
+  const handleDeleteSection = (id: number) => {
+    deleteSection(id);
+  };
+
+  if (settingsLoading || meetingsLoading || sectionsLoading) return <PageLayout title="Settings">Loading...</PageLayout>;
 
   return (
     <PageLayout title="Admin Settings" description="Configure global application parameters.">
@@ -155,6 +188,122 @@ export default function Settings() {
                             </Button>
                           )}
                         </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Report Sections Management */}
+        <Card className="paper-card">
+          <CardHeader>
+            <CardTitle className="text-xl font-serif">Report Sections</CardTitle>
+            <CardDescription>Manage sections for the collaborative report.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-8">
+            <form onSubmit={handleCreateSection} className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 border rounded-lg bg-slate-50/50">
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2"><BookOpen className="h-4 w-4" /> Section Title</Label>
+                <Input 
+                  placeholder="e.g. Key Insights" 
+                  value={newSection.title}
+                  onChange={(e) => setNewSection({ ...newSection, title: e.target.value })}
+                  required
+                  data-testid="input-section-title"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Slug (URL-friendly)</Label>
+                <Input 
+                  placeholder="e.g. key-insights" 
+                  value={newSection.slug}
+                  onChange={(e) => setNewSection({ ...newSection, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
+                  required
+                  data-testid="input-section-slug"
+                />
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label>Description (optional)</Label>
+                <Input 
+                  placeholder="Instructions or prompts for this section" 
+                  value={newSection.description}
+                  onChange={(e) => setNewSection({ ...newSection, description: e.target.value })}
+                  data-testid="input-section-description"
+                />
+              </div>
+              <Button type="submit" className="md:col-span-2 mt-2" disabled={isCreatingSection} data-testid="button-add-section">
+                <Plus className="mr-2 h-4 w-4" /> Add Section
+              </Button>
+            </form>
+
+            <div className="space-y-4">
+              <h3 className="font-serif text-lg font-bold">Current Sections</h3>
+              <div className="space-y-2">
+                {sections?.length === 0 ? (
+                  <p className="text-sm text-muted-foreground italic">No sections created yet.</p>
+                ) : (
+                  sections?.sort((a,b) => a.orderIndex - b.orderIndex).map((section) => (
+                    <div key={section.id} className="flex items-center justify-between p-4 border rounded-lg gap-4 bg-white" data-testid={`section-item-${section.id}`}>
+                      <div className="flex items-center gap-3 flex-1">
+                        <GripVertical className="h-4 w-4 text-slate-300" />
+                        <div className="flex-1">
+                          {editingSection === section.id ? (
+                            <Input 
+                              defaultValue={section.title}
+                              className="h-8"
+                              onBlur={(e) => {
+                                updateSection({ id: section.id, data: { title: e.target.value } });
+                                setEditingSection(null);
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  updateSection({ id: section.id, data: { title: e.currentTarget.value } });
+                                  setEditingSection(null);
+                                }
+                              }}
+                              autoFocus
+                            />
+                          ) : (
+                            <>
+                              <p className="font-medium text-slate-900">{section.title}</p>
+                              <p className="text-xs text-muted-foreground">{section.slug}</p>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          onClick={() => setEditingSection(section.id)}
+                          data-testid={`button-edit-section-${section.id}`}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive" data-testid={`button-delete-section-${section.id}`}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Section?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently delete "{section.title}" and all its draft content. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDeleteSection(section.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </div>
                   ))

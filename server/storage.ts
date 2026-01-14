@@ -43,7 +43,7 @@ export interface IStorage {
   // Report
   getReportSections(): Promise<ReportSection[]>;
   createReportSection(section: InsertReportSection): Promise<ReportSection>;
-  updateReportSection(id: number, section: Partial<InsertReportSection>): Promise<ReportSection>;
+  updateReportSection(id: number, section: Partial<InsertReportSection>): Promise<ReportSection | undefined>;
   deleteReportSection(id: number): Promise<void>;
   getLatestReportVersion(sectionId: number): Promise<(ReportVersion & { author: User }) | undefined>;
   getReportHistory(sectionId: number): Promise<(ReportVersion & { author: User })[]>;
@@ -196,7 +196,7 @@ export class DatabaseStorage implements IStorage {
     return newSection;
   }
 
-  async updateReportSection(id: number, section: Partial<InsertReportSection>): Promise<ReportSection> {
+  async updateReportSection(id: number, section: Partial<InsertReportSection>): Promise<ReportSection | undefined> {
     const [updated] = await db.update(reportSections)
       .set(section)
       .where(eq(reportSections.id, id))
