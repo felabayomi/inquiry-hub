@@ -24,8 +24,10 @@ export interface IStorage {
   
   // Inquiries & Reflections
   getInquiryByUserId(userId: number): Promise<Inquiry | undefined>;
+  getInquiryById(id: number): Promise<Inquiry | undefined>;
   createOrUpdateInquiry(inquiry: InsertInquiry): Promise<Inquiry>;
   getReflections(inquiryId: number): Promise<Reflection[]>;
+  getAllReflections(): Promise<Reflection[]>;
   getReflectionById(id: number): Promise<Reflection | undefined>;
   createReflection(reflection: InsertReflection): Promise<Reflection>;
   deleteReflection(id: number): Promise<void>;
@@ -51,6 +53,7 @@ export interface IStorage {
   deleteReportSection(id: number): Promise<void>;
   getLatestReportVersion(sectionId: number): Promise<(ReportVersion & { author: User }) | undefined>;
   getReportHistory(sectionId: number): Promise<(ReportVersion & { author: User })[]>;
+  getAllReportVersions(): Promise<ReportVersion[]>;
   createReportVersion(version: InsertReportVersion): Promise<ReportVersion>;
   getComments(sectionId: number): Promise<(Comment & { author: User })[]>;
   createComment(comment: InsertComment): Promise<Comment>;
@@ -137,6 +140,11 @@ export class DatabaseStorage implements IStorage {
     return inquiry;
   }
 
+  async getInquiryById(id: number): Promise<Inquiry | undefined> {
+    const [inquiry] = await db.select().from(inquiries).where(eq(inquiries.id, id));
+    return inquiry;
+  }
+
   async createOrUpdateInquiry(inquiry: InsertInquiry): Promise<Inquiry> {
     // Check if exists
     const existing = await this.getInquiryByUserId(inquiry.userId);
@@ -155,6 +163,10 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(reflections)
       .where(eq(reflections.inquiryId, inquiryId))
       .orderBy(desc(reflections.createdAt));
+  }
+
+  async getAllReflections(): Promise<Reflection[]> {
+    return await db.select().from(reflections).orderBy(desc(reflections.createdAt));
   }
 
   async createReflection(reflection: InsertReflection): Promise<Reflection> {
@@ -272,6 +284,10 @@ export class DatabaseStorage implements IStorage {
       orderBy: desc(reportVersions.createdAt),
       with: { author: true }
     });
+  }
+
+  async getAllReportVersions(): Promise<ReportVersion[]> {
+    return await db.select().from(reportVersions).orderBy(desc(reportVersions.createdAt));
   }
 
   async createReportVersion(version: InsertReportVersion): Promise<ReportVersion> {

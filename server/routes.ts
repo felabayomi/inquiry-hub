@@ -77,6 +77,22 @@ export async function registerRoutes(
     if (!req.isAuthenticated()) return res.sendStatus(401);
     const input = api.reflections.create.input.parse(req.body);
     const reflection = await storage.createReflection(input);
+    
+    // Auto-index for AI (reflections are personal/private by default)
+    try {
+      await indexContent(
+        "reflection",
+        reflection.id,
+        req.user.id,
+        input.content,
+        undefined,
+        { weekOf: input.weekOf },
+        "private"
+      );
+    } catch (e) {
+      console.error("Failed to index reflection for AI:", e);
+    }
+    
     res.status(201).json(reflection);
   });
 
@@ -91,6 +107,23 @@ export async function registerRoutes(
     if (!req.isAuthenticated()) return res.sendStatus(401);
     const input = api.resources.create.input.parse(req.body);
     const resource = await storage.createResource({ ...input, userId: req.user.id });
+    
+    // Auto-index for AI
+    try {
+      const contentToIndex = `${input.title}\n\n${input.description || ""}\n\n${input.url}`;
+      await indexContent(
+        "resource",
+        resource.id,
+        req.user.id,
+        contentToIndex,
+        undefined,
+        { category: input.category, tags: input.tags },
+        "cohort"
+      );
+    } catch (e) {
+      console.error("Failed to index resource for AI:", e);
+    }
+    
     res.status(201).json(resource);
   });
 
@@ -162,6 +195,22 @@ export async function registerRoutes(
     if (!req.isAuthenticated()) return res.sendStatus(401);
     const input = api.report.saveVersion.input.parse(req.body);
     const version = await storage.createReportVersion({ ...input, userId: req.user.id });
+    
+    // Auto-index for AI
+    try {
+      await indexContent(
+        "report_post",
+        version.id,
+        req.user.id,
+        input.content,
+        input.sectionId,
+        { justiceLensTags: input.justiceLensTags },
+        "cohort"
+      );
+    } catch (e) {
+      console.error("Failed to index report version for AI:", e);
+    }
+    
     res.status(201).json(version);
   });
 
@@ -175,6 +224,22 @@ export async function registerRoutes(
     if (!req.isAuthenticated()) return res.sendStatus(401);
     const input = api.report.addComment.input.parse(req.body);
     const comment = await storage.createComment({ ...input, userId: req.user.id });
+    
+    // Auto-index for AI
+    try {
+      await indexContent(
+        "comment",
+        comment.id,
+        req.user.id,
+        input.content,
+        input.sectionId,
+        {},
+        "cohort"
+      );
+    } catch (e) {
+      console.error("Failed to index comment for AI:", e);
+    }
+    
     res.status(201).json(comment);
   });
 
@@ -390,6 +455,33 @@ export async function registerRoutes(
     const sectionId = Number(req.params.sectionId);
     const summaries = await getSectionSummaries(sectionId);
     res.json(summaries);
+  });
+
+  // Re-index existing content for AI (admin only)
+  app.post('/api/ai/reindex', async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) return res.sendStatus(401);
+    
+    try {
+      // Index all existing report versions
+      const versions = await storage.getAllReportVersions();
+      for (const v of versions) {
+        await indexContent("report_post", v.id, v.userId, v.content, v.sectionId, { justiceLensTags: v.justiceLensTags }, "cohort");
+      }
+      
+      // Index all existing reflections
+      const allReflections = await storage.getAllReflections();
+      for (const r of allReflections) {
+        const inquiry = await storage.getInquiryById(r.inquiryId);
+        if (inquiry) {
+          await indexContent("reflection", r.id, inquiry.userId, r.content, undefined, { weekOf: r.weekOf }, "private");
+        }
+      }
+      
+      res.json({ success: true, indexed: { versions: versions.length, reflections: allReflections.length } });
+    } catch (error) {
+      console.error("Reindex error:", error);
+      res.status(500).json({ message: "Failed to reindex content" });
+    }
   });
 
   // === SEED DATA ===

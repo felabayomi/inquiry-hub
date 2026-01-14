@@ -9,8 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, ExternalLink, Calendar, Video, Clock, FileText, Trash2, Pencil, GripVertical, BookOpen, Scale, Users, Shield, Key } from "lucide-react";
+import { Plus, ExternalLink, Calendar, Video, Clock, FileText, Trash2, Pencil, GripVertical, BookOpen, Scale, Users, Shield, Key, Bot, Loader2 } from "lucide-react";
 import { format } from "date-fns";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
@@ -61,6 +63,23 @@ export default function Settings() {
   const [resetPasswordUser, setResetPasswordUser] = useState<User | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [toggleAdminUser, setToggleAdminUser] = useState<User | null>(null);
+
+  // AI Reindex mutation
+  const reindexMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest('POST', '/api/ai/reindex');
+      return res.json();
+    },
+    onSuccess: (data) => {
+      toast({ 
+        title: "Content reindexed for AI",
+        description: `Indexed ${data.indexed?.versions || 0} posts and ${data.indexed?.reflections || 0} reflections`
+      });
+    },
+    onError: (error: Error) => {
+      toast({ title: error.message, variant: "destructive" });
+    },
+  });
 
   const getSetting = (key: string) => settings?.find(s => s.key === key)?.value || "";
 
@@ -636,6 +655,44 @@ export default function Settings() {
                   </div>
                 ))
               )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* AI Tools */}
+        <Card className="paper-card">
+          <CardHeader>
+            <CardTitle className="text-xl font-serif flex items-center gap-2">
+              <Bot className="h-5 w-5" /> AI Tools
+            </CardTitle>
+            <CardDescription>Manage AI features for the cohort.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Reindex Content for AI</p>
+                <p className="text-sm text-muted-foreground">
+                  Index all existing posts and reflections so the AI can analyze them. 
+                  Run this after importing existing data.
+                </p>
+              </div>
+              <Button 
+                onClick={() => reindexMutation.mutate()}
+                disabled={reindexMutation.isPending}
+                data-testid="button-reindex-ai"
+              >
+                {reindexMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Indexing...
+                  </>
+                ) : (
+                  <>
+                    <Bot className="h-4 w-4 mr-2" />
+                    Reindex Now
+                  </>
+                )}
+              </Button>
             </div>
           </CardContent>
         </Card>
