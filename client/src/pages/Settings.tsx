@@ -3,16 +3,18 @@ import { PageLayout } from "@/components/layout/PageLayout";
 import { useSettings, useUpdateSetting } from "@/hooks/use-settings";
 import { useMeetings, useCreateMeeting, useUpdateMeeting } from "@/hooks/use-meetings";
 import { useReportSections, useCreateSection, useUpdateSection, useDeleteSection, useJusticeLenses, useCreateJusticeLens, useUpdateJusticeLens, useDeleteJusticeLens } from "@/hooks/use-report";
+import { useUsers, useUpdateUserRole, useUpdateUserPassword } from "@/hooks/use-users";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, ExternalLink, Calendar, Video, Clock, FileText, Trash2, Pencil, GripVertical, BookOpen, Scale } from "lucide-react";
+import { Plus, ExternalLink, Calendar, Video, Clock, FileText, Trash2, Pencil, GripVertical, BookOpen, Scale, Users, Shield, Key } from "lucide-react";
 import { format } from "date-fns";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import type { JusticeLens } from "@shared/schema";
+import { Badge } from "@/components/ui/badge";
+import type { JusticeLens, User } from "@shared/schema";
 
 export default function Settings() {
   const { data: settings, isLoading: settingsLoading } = useSettings();
@@ -28,6 +30,9 @@ export default function Settings() {
   const { mutate: createLens, isPending: isCreatingLens } = useCreateJusticeLens();
   const { mutate: updateLens } = useUpdateJusticeLens();
   const { mutate: deleteLens } = useDeleteJusticeLens();
+  const { data: allUsers, isLoading: usersLoading } = useUsers();
+  const { mutate: updateRole, isPending: isUpdatingRole } = useUpdateUserRole();
+  const { mutate: updatePassword, isPending: isUpdatingPassword } = useUpdateUserPassword();
   const { toast } = useToast();
 
   const [newMeeting, setNewMeeting] = useState({
@@ -53,6 +58,8 @@ export default function Settings() {
   });
   const [editingLens, setEditingLens] = useState<JusticeLens | null>(null);
   const [editLensForm, setEditLensForm] = useState({ label: "", slug: "" });
+  const [resetPasswordUser, setResetPasswordUser] = useState<User | null>(null);
+  const [newPassword, setNewPassword] = useState("");
 
   const getSetting = (key: string) => settings?.find(s => s.key === key)?.value || "";
 
@@ -65,7 +72,7 @@ export default function Settings() {
     if (!newMeeting.title || !newMeeting.date) return;
     createMeeting({
       ...newMeeting,
-      date: new Date(newMeeting.date).toISOString(),
+      date: new Date(newMeeting.date),
     }, {
       onSuccess: () => {
         setNewMeeting({ title: "", date: "", zoomLink: "", agenda: "" });
@@ -130,7 +137,24 @@ export default function Settings() {
     });
   };
 
-  if (settingsLoading || meetingsLoading || sectionsLoading || lensesLoading) return <PageLayout title="Settings">Loading...</PageLayout>;
+  const handleResetPassword = () => {
+    if (!resetPasswordUser || newPassword.length < 6) {
+      toast({ title: "Password must be at least 6 characters", variant: "destructive" });
+      return;
+    }
+    updatePassword({ id: resetPasswordUser.id, password: newPassword }, {
+      onSuccess: () => {
+        setResetPasswordUser(null);
+        setNewPassword("");
+      }
+    });
+  };
+
+  const handleToggleAdmin = (user: User) => {
+    updateRole({ id: user.id, isAdmin: !user.isAdmin });
+  };
+
+  if (settingsLoading || meetingsLoading || sectionsLoading || lensesLoading || usersLoading) return <PageLayout title="Settings">Loading...</PageLayout>;
 
   return (
     <PageLayout title="Admin Settings" description="Configure global application parameters.">
@@ -545,6 +569,96 @@ export default function Settings() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Cohort Members */}
+        <Card className="paper-card">
+          <CardHeader>
+            <CardTitle className="text-xl font-serif flex items-center gap-2">
+              <Users className="h-5 w-5" /> Cohort Members
+            </CardTitle>
+            <CardDescription>View and manage all registered users.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {allUsers?.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic">No members have registered yet.</p>
+              ) : (
+                allUsers?.map((user) => (
+                  <div key={user.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg gap-4 bg-white" data-testid={`user-item-${user.id}`}>
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-slate-900">{user.fullName || user.username}</p>
+                          {user.isAdmin && (
+                            <Badge variant="secondary" className="flex items-center gap-1" data-testid={`badge-admin-${user.id}`}>
+                              <Shield className="h-3 w-3" /> Admin
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground">@{user.username}</p>
+                        {user.createdAt && (
+                          <p className="text-xs text-muted-foreground">
+                            Joined {format(new Date(user.createdAt), "MMM d, yyyy")}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Button 
+                        size="sm" 
+                        variant={user.isAdmin ? "outline" : "secondary"}
+                        onClick={() => handleToggleAdmin(user)}
+                        disabled={isUpdatingRole}
+                        data-testid={`button-toggle-admin-${user.id}`}
+                      >
+                        <Shield className="h-4 w-4 mr-1" />
+                        {user.isAdmin ? "Remove Admin" : "Make Admin"}
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => setResetPasswordUser(user)}
+                        data-testid={`button-reset-password-${user.id}`}
+                      >
+                        <Key className="h-4 w-4 mr-1" /> Reset Password
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Reset Password Dialog */}
+        <Dialog open={!!resetPasswordUser} onOpenChange={(open) => { if (!open) { setResetPasswordUser(null); setNewPassword(""); } }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Reset Password</DialogTitle>
+              <DialogDescription>
+                Set a new password for {resetPasswordUser?.fullName || resetPasswordUser?.username}.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>New Password</Label>
+                <Input 
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password (min 6 characters)"
+                  data-testid="input-new-password"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => { setResetPasswordUser(null); setNewPassword(""); }}>Cancel</Button>
+              <Button onClick={handleResetPassword} disabled={isUpdatingPassword || newPassword.length < 6} data-testid="button-confirm-reset-password">
+                Reset Password
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </PageLayout>
   );

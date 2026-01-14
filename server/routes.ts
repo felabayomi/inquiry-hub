@@ -183,6 +183,37 @@ export async function registerRoutes(
     res.json(setting);
   });
 
+  // === USER MANAGEMENT ===
+  app.get(api.users.list.path, async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) return res.sendStatus(401);
+    const users = await storage.getAllUsers();
+    // Properly exclude passwords from response
+    const safeUsers = users.map(({ password, ...rest }) => rest);
+    res.json(safeUsers);
+  });
+
+  app.patch('/api/admin/users/:id/role', async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) return res.sendStatus(401);
+    const input = api.users.updateRole.input.parse(req.body);
+    const user = await storage.updateUserRole(Number(req.params.id), input.isAdmin);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const { password, ...safeUser } = user;
+    res.json(safeUser);
+  });
+
+  app.patch('/api/admin/users/:id/password', async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) return res.sendStatus(401);
+    const input = api.users.updatePassword.input.parse(req.body);
+    const hashedPassword = await hashPassword(input.password);
+    const user = await storage.updateUserPassword(Number(req.params.id), hashedPassword);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json({ success: true });
+  });
+
   // === JUSTICE LENSES ===
   app.get(api.justiceLenses.list.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);

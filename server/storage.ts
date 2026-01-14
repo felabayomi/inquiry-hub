@@ -17,6 +17,9 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  getAllUsers(): Promise<User[]>;
+  updateUserRole(id: number, isAdmin: boolean): Promise<User | undefined>;
+  updateUserPassword(id: number, hashedPassword: string): Promise<User | undefined>;
   
   // Inquiries & Reflections
   getInquiryByUserId(userId: number): Promise<Inquiry | undefined>;
@@ -90,6 +93,26 @@ export class DatabaseStorage implements IStorage {
   async createUser(user: InsertUser): Promise<User> {
     const [newUser] = await db.insert(users).values(user).returning();
     return newUser;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users).orderBy(desc(users.createdAt));
+  }
+
+  async updateUserRole(id: number, isAdmin: boolean): Promise<User | undefined> {
+    const [updated] = await db.update(users)
+      .set({ isAdmin, role: isAdmin ? 'admin' : 'member' })
+      .where(eq(users.id, id))
+      .returning();
+    return updated;
+  }
+
+  async updateUserPassword(id: number, hashedPassword: string): Promise<User | undefined> {
+    const [updated] = await db.update(users)
+      .set({ password: hashedPassword })
+      .where(eq(users.id, id))
+      .returning();
+    return updated;
   }
 
   async getInquiryByUserId(userId: number): Promise<Inquiry | undefined> {

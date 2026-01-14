@@ -238,6 +238,36 @@ export const api = {
       },
     },
   },
+  users: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/admin/users',
+      responses: {
+        200: z.array(z.custom<typeof users.$inferSelect>()),
+        401: errorSchemas.unauthorized,
+      },
+    },
+    updateRole: {
+      method: 'PATCH' as const,
+      path: '/api/admin/users/:id/role',
+      input: z.object({ isAdmin: z.boolean() }),
+      responses: {
+        200: z.custom<typeof users.$inferSelect>(),
+        401: errorSchemas.unauthorized,
+        404: errorSchemas.notFound,
+      },
+    },
+    updatePassword: {
+      method: 'PATCH' as const,
+      path: '/api/admin/users/:id/password',
+      input: z.object({ password: z.string().min(6) }),
+      responses: {
+        200: z.object({ success: z.boolean() }),
+        401: errorSchemas.unauthorized,
+        404: errorSchemas.notFound,
+      },
+    },
+  },
   justiceLenses: {
     list: {
       method: 'GET' as const,
