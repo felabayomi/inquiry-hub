@@ -1,8 +1,8 @@
 import { db } from "./db";
 import { 
-  users, inquiries, reflections, resources, meetings, reportSections, reportVersions, comments, appSettings, inquiryComments, justiceLenses, postReads, postReactions,
-  type User, type Inquiry, type Reflection, type Resource, type Meeting, type ReportSection, type ReportVersion, type Comment, type AppSetting, type InquiryComment, type JusticeLens, type PostRead, type PostReaction,
-  type InsertUser, type InsertInquiry, type InsertReflection, type InsertResource, type InsertMeeting, type InsertReportVersion, type InsertComment, type InsertSetting, type InsertInquiryComment, type InsertReportSection, type InsertJusticeLens, type InsertPostRead, type InsertPostReaction
+  users, inquiries, reflections, resources, meetings, reportSections, reportVersions, comments, appSettings, inquiryComments, justiceLenses, postReads, postReactions, inquiryMappings, sectionLensMappings,
+  type User, type Inquiry, type Reflection, type Resource, type Meeting, type ReportSection, type ReportVersion, type Comment, type AppSetting, type InquiryComment, type JusticeLens, type PostRead, type PostReaction, type InquiryMapping, type SectionLensMapping,
+  type InsertUser, type InsertInquiry, type InsertReflection, type InsertResource, type InsertMeeting, type InsertReportVersion, type InsertComment, type InsertSetting, type InsertInquiryComment, type InsertReportSection, type InsertJusticeLens, type InsertPostRead, type InsertPostReaction, type InsertInquiryMapping, type InsertSectionLensMapping
 } from "@shared/schema";
 import { eq, desc, and } from "drizzle-orm";
 import session from "express-session";
@@ -76,6 +76,18 @@ export interface IStorage {
   toggleReaction(versionId: number, userId: number, reactionType: string): Promise<{ added: boolean }>;
   getVersionReactions(versionId: number): Promise<(PostReaction & { user: User })[]>;
   getAllVersionsWithEngagement(): Promise<(ReportVersion & { author: User, reads: (PostRead & { user: User })[], reactions: (PostReaction & { user: User })[] })[]>;
+
+  // Inquiry Mappings
+  getInquiryMappings(): Promise<InquiryMapping[]>;
+  getActiveMapping(): Promise<InquiryMapping | undefined>;
+  createInquiryMapping(mapping: InsertInquiryMapping): Promise<InquiryMapping>;
+  updateInquiryMapping(id: number, mapping: Partial<InsertInquiryMapping>): Promise<InquiryMapping | undefined>;
+  deleteInquiryMapping(id: number): Promise<void>;
+  setActiveMapping(id: number): Promise<void>;
+  
+  // Section-Lens Mappings
+  getSectionLensMappings(mappingId: number): Promise<SectionLensMapping[]>;
+  saveSectionLensMappings(mappingId: number, mappings: InsertSectionLensMapping[]): Promise<void>;
 
   // Seeding helpers
   seedReportSections(sections: InsertReportSection[]): Promise<void>;
@@ -420,6 +432,48 @@ export class DatabaseStorage implements IStorage {
     }));
     
     return result;
+  }
+
+  // Inquiry Mappings
+  async getInquiryMappings(): Promise<InquiryMapping[]> {
+    return await db.select().from(inquiryMappings).orderBy(desc(inquiryMappings.createdAt));
+  }
+
+  async getActiveMapping(): Promise<InquiryMapping | undefined> {
+    const [mapping] = await db.select().from(inquiryMappings).where(eq(inquiryMappings.isActive, true)).limit(1);
+    return mapping;
+  }
+
+  async createInquiryMapping(mapping: InsertInquiryMapping): Promise<InquiryMapping> {
+    const [newMapping] = await db.insert(inquiryMappings).values(mapping).returning();
+    return newMapping;
+  }
+
+  async updateInquiryMapping(id: number, mapping: Partial<InsertInquiryMapping>): Promise<InquiryMapping | undefined> {
+    const [updated] = await db.update(inquiryMappings).set(mapping).where(eq(inquiryMappings.id, id)).returning();
+    return updated;
+  }
+
+  async deleteInquiryMapping(id: number): Promise<void> {
+    await db.delete(sectionLensMappings).where(eq(sectionLensMappings.mappingId, id));
+    await db.delete(inquiryMappings).where(eq(inquiryMappings.id, id));
+  }
+
+  async setActiveMapping(id: number): Promise<void> {
+    await db.update(inquiryMappings).set({ isActive: false });
+    await db.update(inquiryMappings).set({ isActive: true }).where(eq(inquiryMappings.id, id));
+  }
+
+  // Section-Lens Mappings
+  async getSectionLensMappings(mappingId: number): Promise<SectionLensMapping[]> {
+    return await db.select().from(sectionLensMappings).where(eq(sectionLensMappings.mappingId, mappingId));
+  }
+
+  async saveSectionLensMappings(mappingId: number, mappings: InsertSectionLensMapping[]): Promise<void> {
+    await db.delete(sectionLensMappings).where(eq(sectionLensMappings.mappingId, mappingId));
+    if (mappings.length > 0) {
+      await db.insert(sectionLensMappings).values(mappings);
+    }
   }
 }
 

@@ -408,6 +408,63 @@ export async function registerRoutes(
     res.json({ success: true });
   });
 
+  // === INQUIRY MAPPINGS ===
+  app.get(api.inquiryMappings.list.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const mappings = await storage.getInquiryMappings();
+    res.json(mappings);
+  });
+
+  app.get(api.inquiryMappings.active.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const mapping = await storage.getActiveMapping();
+    res.json(mapping || null);
+  });
+
+  app.post(api.inquiryMappings.create.path, async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) return res.sendStatus(401);
+    const input = api.inquiryMappings.create.input.parse(req.body);
+    const mapping = await storage.createInquiryMapping(input);
+    res.status(201).json(mapping);
+  });
+
+  app.patch(api.inquiryMappings.update.path, async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) return res.sendStatus(401);
+    const input = api.inquiryMappings.update.input.parse(req.body);
+    const mapping = await storage.updateInquiryMapping(Number(req.params.id), input);
+    if (!mapping) {
+      return res.status(404).json({ message: "Mapping not found" });
+    }
+    res.json(mapping);
+  });
+
+  app.delete(api.inquiryMappings.delete.path, async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) return res.sendStatus(401);
+    await storage.deleteInquiryMapping(Number(req.params.id));
+    res.json({ success: true });
+  });
+
+  app.post(api.inquiryMappings.setActive.path, async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) return res.sendStatus(401);
+    await storage.setActiveMapping(Number(req.params.id));
+    res.json({ success: true });
+  });
+
+  app.get(api.inquiryMappings.sectionMappings.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const mappings = await storage.getSectionLensMappings(Number(req.params.id));
+    res.json(mappings);
+  });
+
+  app.post(api.inquiryMappings.saveSectionMappings.path, async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) return res.sendStatus(401);
+    const mappingId = Number(req.params.id);
+    const input = api.inquiryMappings.saveSectionMappings.input.parse(req.body);
+    const mappingsWithId = input.map(m => ({ ...m, mappingId }));
+    await storage.saveSectionLensMappings(mappingId, mappingsWithId);
+    res.json({ success: true });
+  });
+
   // === AI INSIGHTS ===
   app.get('/api/ai/settings', async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);

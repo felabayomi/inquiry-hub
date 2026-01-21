@@ -2,8 +2,8 @@ import { z } from 'zod';
 import { 
   insertUserSchema, insertInquirySchema, insertReflectionSchema, 
   insertResourceSchema, insertMeetingSchema, insertReportVersionSchema, 
-  insertCommentSchema, insertSettingSchema, insertInquiryCommentSchema, insertReportSectionSchema, insertJusticeLensSchema,
-  users, inquiries, reflections, resources, meetings, reportSections, reportVersions, comments, appSettings, inquiryComments, justiceLenses
+  insertCommentSchema, insertSettingSchema, insertInquiryCommentSchema, insertReportSectionSchema, insertJusticeLensSchema, insertInquiryMappingSchema, insertSectionLensMappingSchema,
+  users, inquiries, reflections, resources, meetings, reportSections, reportVersions, comments, appSettings, inquiryComments, justiceLenses, inquiryMappings, sectionLensMappings
 } from './schema';
 
 // Shared error schemas
@@ -320,6 +320,67 @@ export const api = {
     delete: {
       method: 'DELETE' as const,
       path: '/api/admin/justice-lenses/:id',
+      responses: {
+        200: z.object({ success: z.boolean() }),
+      },
+    },
+  },
+  inquiryMappings: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/inquiry-mappings',
+      responses: {
+        200: z.array(z.custom<typeof inquiryMappings.$inferSelect>()),
+      },
+    },
+    active: {
+      method: 'GET' as const,
+      path: '/api/inquiry-mappings/active',
+      responses: {
+        200: z.custom<typeof inquiryMappings.$inferSelect>().nullable(),
+      },
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/inquiry-mappings',
+      input: insertInquiryMappingSchema,
+      responses: {
+        201: z.custom<typeof inquiryMappings.$inferSelect>(),
+      },
+    },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/inquiry-mappings/:id',
+      input: insertInquiryMappingSchema.partial(),
+      responses: {
+        200: z.custom<typeof inquiryMappings.$inferSelect>(),
+      },
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/inquiry-mappings/:id',
+      responses: {
+        200: z.object({ success: z.boolean() }),
+      },
+    },
+    setActive: {
+      method: 'POST' as const,
+      path: '/api/inquiry-mappings/:id/activate',
+      responses: {
+        200: z.object({ success: z.boolean() }),
+      },
+    },
+    sectionMappings: {
+      method: 'GET' as const,
+      path: '/api/inquiry-mappings/:id/sections',
+      responses: {
+        200: z.array(z.custom<typeof sectionLensMappings.$inferSelect>()),
+      },
+    },
+    saveSectionMappings: {
+      method: 'POST' as const,
+      path: '/api/inquiry-mappings/:id/sections',
+      input: z.array(insertSectionLensMappingSchema.omit({ mappingId: true })),
       responses: {
         200: z.object({ success: z.boolean() }),
       },
