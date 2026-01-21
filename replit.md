@@ -109,7 +109,16 @@ Visibility is set when creating content and stored in the database. The AI index
 - **AI Indexing**: Content is automatically indexed for AI analysis in `server/ai-service.ts`
 - **Evidence-Backed Citations**: AI insights include clickable source links that navigate to original posts/reflections/resources
 - **Section Synthesis**: Admins can generate AI summaries of report section contributions
+- **AI Inquiry Mapping**: Admins can create reusable templates that map specific lenses/indices to each report section, enabling focused AI analysis
 - Uses OpenAI integration for embeddings and completions
+
+### AI Inquiry Mapping System
+Allows admins to define templates specifying which lenses and indices apply to each report section:
+- **Mapping Templates**: Create named mappings with description (stored in `inquiryMappings` table)
+- **Section-Lens Associations**: For each section, define which lenses and specific indices to apply (stored in `sectionLensMappings` table)
+- **Active Mapping**: Only one mapping can be active at a time; the AI synthesis uses the active mapping
+- **Integration with Synthesis**: When `generateSectionSynthesis` runs, it includes the mapped lenses/indices in the AI prompt to focus analysis
+- **Admin UI**: `/ai-mapping` page allows full CRUD operations on mappings with visual section-by-section configuration
 
 ### Admin Report Template Management
 Admins can customize report sections via Settings page:
