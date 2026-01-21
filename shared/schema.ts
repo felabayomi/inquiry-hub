@@ -126,6 +126,14 @@ export const sectionLensMappings = pgTable("section_lens_mappings", {
   indices: text("indices").array(), // ["land", "water", "energy"] - specific indices to use
 });
 
+// === SECTION FOCUS CONTEXT (Per-section focus descriptions for explicit inquiry framing) ===
+export const sectionFocusContext = pgTable("section_focus_context", {
+  id: serial("id").primaryKey(),
+  mappingId: integer("mapping_id").references(() => inquiryMappings.id).notNull(),
+  sectionSlug: text("section_slug").notNull(),
+  focusContext: text("focus_context").notNull(), // "AI-driven infrastructure, data systems..."
+});
+
 // === POST READS (Track who viewed a report version) ===
 export const postReads = pgTable("post_reads", {
   id: serial("id").primaryKey(),
@@ -251,6 +259,7 @@ export const insertSettingSchema = createInsertSchema(appSettings);
 export const insertJusticeLensSchema = createInsertSchema(justiceLenses).omit({ id: true });
 export const insertInquiryMappingSchema = createInsertSchema(inquiryMappings).omit({ id: true, createdAt: true });
 export const insertSectionLensMappingSchema = createInsertSchema(sectionLensMappings).omit({ id: true });
+export const insertSectionFocusContextSchema = createInsertSchema(sectionFocusContext).omit({ id: true });
 export const insertPostReadSchema = createInsertSchema(postReads).omit({ id: true, readAt: true });
 export const insertPostReactionSchema = createInsertSchema(postReactions).omit({ id: true, createdAt: true });
 export const insertAiContentChunkSchema = createInsertSchema(aiContentChunks).omit({ id: true, createdAt: true });
@@ -273,6 +282,7 @@ export type AppSetting = typeof appSettings.$inferSelect;
 export type JusticeLens = typeof justiceLenses.$inferSelect;
 export type InquiryMapping = typeof inquiryMappings.$inferSelect;
 export type SectionLensMapping = typeof sectionLensMappings.$inferSelect;
+export type SectionFocusContext = typeof sectionFocusContext.$inferSelect;
 export type PostRead = typeof postReads.$inferSelect;
 export type PostReaction = typeof postReactions.$inferSelect;
 export type AiContentChunk = typeof aiContentChunks.$inferSelect;
@@ -294,6 +304,7 @@ export type InsertSetting = z.infer<typeof insertSettingSchema>;
 export type InsertJusticeLens = z.infer<typeof insertJusticeLensSchema>;
 export type InsertInquiryMapping = z.infer<typeof insertInquiryMappingSchema>;
 export type InsertSectionLensMapping = z.infer<typeof insertSectionLensMappingSchema>;
+export type InsertSectionFocusContext = z.infer<typeof insertSectionFocusContextSchema>;
 export type InsertPostRead = z.infer<typeof insertPostReadSchema>;
 export type InsertPostReaction = z.infer<typeof insertPostReactionSchema>;
 export type InsertAiContentChunk = z.infer<typeof insertAiContentChunkSchema>;
