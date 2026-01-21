@@ -75,7 +75,12 @@ export async function registerRoutes(
   // === REFLECTIONS ===
   app.post(api.reflections.create.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    const input = api.reflections.create.input.parse(req.body);
+    // Transform weekOf string to Date before validation
+    const body = {
+      ...req.body,
+      weekOf: req.body.weekOf ? new Date(req.body.weekOf) : undefined,
+    };
+    const input = api.reflections.create.input.parse(body);
     const reflection = await storage.createReflection(input);
     
     // Auto-index for AI (use visibility from input, default to private)
