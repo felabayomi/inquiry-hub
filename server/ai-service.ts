@@ -10,7 +10,11 @@ import {
   comments,
   resources,
   inquiries,
-  users
+  users,
+  inquiryMappings,
+  sectionLensMappings,
+  reportSections,
+  justiceLenses
 } from "@shared/schema";
 import { eq, and, desc, inArray } from "drizzle-orm";
 
@@ -269,6 +273,45 @@ Respond with a JSON object containing:
   }
 }
 
+async function getActiveMappingContext(sectionId: number): Promise<string> {
+  // Get the section slug
+  const [section] = await db.select().from(reportSections).where(eq(reportSections.id, sectionId));
+  if (!section) return "";
+  
+  // Get active mapping
+  const [activeMapping] = await db.select().from(inquiryMappings).where(eq(inquiryMappings.isActive, true)).limit(1);
+  if (!activeMapping) return "";
+  
+  // Get section-lens mappings for this section
+  const mappings = await db.select().from(sectionLensMappings)
+    .where(and(
+      eq(sectionLensMappings.mappingId, activeMapping.id),
+      eq(sectionLensMappings.sectionSlug, section.slug)
+    ));
+  
+  if (mappings.length === 0) return "";
+  
+  // Get lens labels
+  const lensData = await db.select().from(justiceLenses);
+  const lensMap = Object.fromEntries(lensData.map(l => [l.slug, l]));
+  
+  // Build context string
+  const lensContextParts: string[] = [];
+  for (const mapping of mappings) {
+    const lens = lensMap[mapping.lensSlug];
+    if (lens) {
+      const indices = mapping.indices && mapping.indices.length > 0 
+        ? `: ${mapping.indices.join(", ")}`
+        : "";
+      lensContextParts.push(`- ${lens.label}${indices}`);
+    }
+  }
+  
+  if (lensContextParts.length === 0) return "";
+  
+  return `\n\nIMPORTANT: When analyzing this section, focus your analysis on these specific lenses and indices:\n${lensContextParts.join("\n")}\n\nUse these lenses to frame your themes, insights, and recommendations.`;
+}
+
 export async function generateSectionSynthesis(sectionId: number): Promise<AiSummaryOutput> {
   const chunksResult = await getChunksForSection(sectionId, 25);
   
@@ -287,10 +330,13 @@ export async function generateSectionSynthesis(sectionId: number): Promise<AiSum
     `[${i + 1}] (by ${r.user?.fullName || "Unknown"}) ${r.chunk.chunkText}`
   ).join("\n\n");
 
+  // Get mapping context for this section
+  const mappingContext = await getActiveMappingContext(sectionId);
+
   const systemPrompt = `You are an AI assistant helping synthesize collaborative doctoral research.
 Analyze the provided contributions from multiple cohort members and generate a synthesis.
 Identify common themes, tensions, and connections while respecting each contributor's voice.
-Focus on justice and ethics implications when present.
+Focus on justice and ethics implications when present.${mappingContext}
 Always respond with valid JSON.`;
 
   const userPrompt = `Synthesize these contributions from multiple cohort members for a report section:

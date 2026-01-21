@@ -17,6 +17,7 @@ import Settings from "@/pages/Settings";
 import CohortOverview from "@/pages/CohortOverview";
 import Account from "@/pages/Account";
 import AIInsights from "@/pages/AIInsights";
+import InquiryMapping from "@/pages/InquiryMapping";
 import About from "@/pages/About";
 import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
@@ -92,6 +93,10 @@ function Router() {
 
       <Route path="/cohort">
         <ProtectedRoute component={CohortOverview} adminOnly />
+      </Route>
+
+      <Route path="/mapping">
+        <ProtectedRoute component={InquiryMapping} adminOnly />
       </Route>
 
       <Route path="/account">

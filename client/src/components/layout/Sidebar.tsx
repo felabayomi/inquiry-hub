@@ -16,7 +16,8 @@ import {
   HelpCircle,
   Info,
   Shield,
-  ScrollText
+  ScrollText,
+  Map
 } from "lucide-react";
 import { useUser, useLogout } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
@@ -41,6 +42,7 @@ export function Sidebar() {
 
   if (user?.role === "admin") {
     navItems.push({ href: "/cohort", label: "Cohort Overview", icon: Users });
+    navItems.push({ href: "/mapping", label: "AI Mapping", icon: Map });
     navItems.push({ href: "/settings", label: "Admin Settings", icon: Settings });
   }
 
