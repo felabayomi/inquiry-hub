@@ -17,6 +17,10 @@ import Settings from "@/pages/Settings";
 import CohortOverview from "@/pages/CohortOverview";
 import Account from "@/pages/Account";
 import AIInsights from "@/pages/AIInsights";
+import About from "@/pages/About";
+import Privacy from "@/pages/Privacy";
+import Terms from "@/pages/Terms";
+import Help from "@/pages/Help";
 import NotFound from "@/pages/not-found";
 
 function ProtectedRoute({ component: Component, adminOnly = false }: { component: React.ComponentType, adminOnly?: boolean }) {
@@ -96,6 +100,22 @@ function Router() {
 
       <Route path="/ai-insights">
         <ProtectedRoute component={AIInsights} />
+      </Route>
+
+      <Route path="/about">
+        <ProtectedRoute component={About} />
+      </Route>
+
+      <Route path="/privacy">
+        <ProtectedRoute component={Privacy} />
+      </Route>
+
+      <Route path="/terms">
+        <ProtectedRoute component={Terms} />
+      </Route>
+
+      <Route path="/help">
+        <ProtectedRoute component={Help} />
       </Route>
 
       <Route component={NotFound} />

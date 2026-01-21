@@ -12,7 +12,11 @@ import {
   Menu,
   X,
   Users,
-  Sparkles
+  Sparkles,
+  HelpCircle,
+  Info,
+  Shield,
+  ScrollText
 } from "lucide-react";
 import { useUser, useLogout } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
@@ -129,6 +133,29 @@ export function Sidebar() {
             <LogOut className="mr-2 h-3.5 w-3.5" />
             Sign Out
           </button>
+          
+          <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 mt-4 pt-4 border-t border-slate-800">
+            <Link href="/help" onClick={() => setIsOpen(false)}>
+              <span className="text-xs text-slate-500 hover:text-slate-300 cursor-pointer flex items-center gap-1" data-testid="link-help">
+                <HelpCircle className="h-3 w-3" /> Help
+              </span>
+            </Link>
+            <Link href="/about" onClick={() => setIsOpen(false)}>
+              <span className="text-xs text-slate-500 hover:text-slate-300 cursor-pointer flex items-center gap-1" data-testid="link-about">
+                <Info className="h-3 w-3" /> About
+              </span>
+            </Link>
+            <Link href="/privacy" onClick={() => setIsOpen(false)}>
+              <span className="text-xs text-slate-500 hover:text-slate-300 cursor-pointer flex items-center gap-1" data-testid="link-privacy">
+                <Shield className="h-3 w-3" /> Privacy
+              </span>
+            </Link>
+            <Link href="/terms" onClick={() => setIsOpen(false)}>
+              <span className="text-xs text-slate-500 hover:text-slate-300 cursor-pointer flex items-center gap-1" data-testid="link-terms">
+                <ScrollText className="h-3 w-3" /> Terms
+              </span>
+            </Link>
+          </div>
         </div>
       </aside>
 
