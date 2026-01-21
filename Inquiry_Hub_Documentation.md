@@ -1,8 +1,8 @@
-# Ed.D. AI Inquiry Hub + Report Builder
+# Inquiry Hub + Report Builder
 
 ## Executive Summary
 
-The Ed.D. AI Inquiry Hub is a collaborative web application designed specifically for the Ed.D. AI Inquiry Cohort (January - July 2026). This platform enables small groups of 4-5 cohort members, along with their facilitators, to track individual research inquiries, share resources, manage meetings, and collaboratively build structured reports with a "Justice & Ethics" lens.
+The Inquiry Hub is a collaborative web application designed for inquiry cohorts. This platform enables small groups of 4-5 cohort members, along with their facilitators, to track individual research inquiries, share resources, manage meetings, and collaboratively build structured reports with a "Justice & Ethics" lens.
 
 The application is hosted on Replit's cloud infrastructure with a PostgreSQL database, providing secure, accessible storage for all cohort content throughout the inquiry journey.
 
@@ -143,7 +143,7 @@ Intelligent summarization and synthesis tools:
 
 ## Cohort Timeline
 
-The platform is designed around the Ed.D. AI Inquiry Cohort schedule:
+The platform is designed around the Inquiry Cohort schedule:
 
 | Phase | Dates | Focus |
 |-------|-------|-------|
@@ -172,7 +172,7 @@ These tags help cohort members categorize their contributions and ensure the fin
 
 ---
 
-## Benefits for the Ed.D. Program
+## Benefits for the Program
 
 1. **Structured Collaboration** - Organized framework for group research projects
 2. **Documentation** - Automatic tracking of inquiry evolution over time
@@ -202,6 +202,6 @@ For technical support or questions about the platform, please contact:
 
 ---
 
-*Documentation prepared for Ed.D. AI Inquiry Cohort (January - July 2026)*
+*Documentation prepared for Inquiry Cohort*
 *Platform Version: 1.0*
 *Last Updated: January 2026*

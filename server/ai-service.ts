@@ -201,12 +201,12 @@ export async function generateJourneySummary(userId: number): Promise<AiSummaryO
     `[${i + 1}] (${r.chunk.sourceType}) ${r.chunk.chunkText}`
   ).join("\n\n");
 
-  const systemPrompt = `You are an AI assistant helping Ed.D. doctoral students synthesize their inquiry journey. 
+  const systemPrompt = `You are an AI assistant helping cohort members synthesize their inquiry journey. 
 Analyze the provided content chunks and generate a structured summary of their learning journey.
 Focus on themes, insights, growth, and connections to justice/ethics when present.
 Always respond with valid JSON matching the schema exactly.`;
 
-  const userPrompt = `Analyze these content chunks from a doctoral student's inquiry journey and provide a synthesis:
+  const userPrompt = `Analyze these content chunks from a cohort member's inquiry journey and provide a synthesis:
 
 ${chunksText}
 
