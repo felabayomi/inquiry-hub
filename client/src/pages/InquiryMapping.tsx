@@ -26,13 +26,15 @@ import {
   useInquiryMappings, 
   useActiveMapping,
   useSectionLensMappings, 
+  useSectionFocusContexts,
   useCreateMapping, 
   useUpdateMapping, 
   useDeleteMapping,
   useSetActiveMapping,
-  useSaveSectionMappings
+  useSaveSectionMappings,
+  useSaveFocusContexts
 } from "@/hooks/use-inquiry-mappings";
-import type { InquiryMapping, SectionLensMapping, ReportSection, JusticeLens } from "@shared/schema";
+import type { InquiryMapping, SectionLensMapping, SectionFocusContext, ReportSection, JusticeLens } from "@shared/schema";
 
 export default function InquiryMappingPage() {
   const { user } = useUser();
@@ -47,14 +49,17 @@ export default function InquiryMappingPage() {
   const [newMappingDescription, setNewMappingDescription] = useState("");
   
   const { data: sectionMappings } = useSectionLensMappings(selectedMappingId || undefined);
+  const { data: focusContexts } = useSectionFocusContexts(selectedMappingId || undefined);
   
   const createMapping = useCreateMapping();
   const updateMapping = useUpdateMapping();
   const deleteMapping = useDeleteMapping();
   const setActiveMapping = useSetActiveMapping();
   const saveSectionMappings = useSaveSectionMappings();
+  const saveFocusContexts = useSaveFocusContexts();
 
   const [localMappings, setLocalMappings] = useState<Record<string, Record<string, string[]>>>({});
+  const [localFocusContexts, setLocalFocusContexts] = useState<Record<string, string>>({});
   
   useEffect(() => {
     if (sectionMappings && sections) {
@@ -71,6 +76,19 @@ export default function InquiryMappingPage() {
       setLocalMappings(mappingsObj);
     }
   }, [sectionMappings, sections]);
+
+  useEffect(() => {
+    if (focusContexts && sections) {
+      const contextsObj: Record<string, string> = {};
+      sections.forEach(section => {
+        contextsObj[section.slug] = "";
+      });
+      focusContexts.forEach(fc => {
+        contextsObj[fc.sectionSlug] = fc.focusContext;
+      });
+      setLocalFocusContexts(contextsObj);
+    }
+  }, [focusContexts, sections]);
 
   const handleCreateMapping = async () => {
     if (!newMappingName.trim()) return;
@@ -135,9 +153,21 @@ export default function InquiryMappingPage() {
       });
     });
     
+    const contextsToSave: Omit<SectionFocusContext, "id" | "mappingId">[] = [];
+    Object.entries(localFocusContexts).forEach(([sectionSlug, focusContext]) => {
+      if (focusContext.trim()) {
+        contextsToSave.push({ sectionSlug, focusContext });
+      }
+    });
+    
     await saveSectionMappings.mutateAsync({
       mappingId: selectedMappingId,
       mappings: mappingsToSave,
+    });
+    
+    await saveFocusContexts.mutateAsync({
+      mappingId: selectedMappingId,
+      contexts: contextsToSave,
     });
   };
 
@@ -302,6 +332,27 @@ export default function InquiryMappingPage() {
                         </AccordionTrigger>
                         <AccordionContent>
                           <div className="space-y-4 pt-2">
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium">Focus Context</Label>
+                              <Textarea
+                                placeholder="Describe how the inquiry focus applies to this section (e.g., 'AI-driven infrastructure, data systems, and automation...')"
+                                value={localFocusContexts[section.slug] || ""}
+                                onChange={(e) => setLocalFocusContexts(prev => ({
+                                  ...prev,
+                                  [section.slug]: e.target.value
+                                }))}
+                                className="min-h-[80px] text-sm"
+                                data-testid={`textarea-focus-context-${section.slug}`}
+                              />
+                              <p className="text-xs text-muted-foreground">
+                                This text explicitly frames how your inquiry focus applies to this section
+                              </p>
+                            </div>
+                            
+                            <div className="border-t pt-4">
+                              <Label className="text-sm font-medium mb-2 block">Lenses & Indices</Label>
+                            </div>
+                            
                             {(lenses || []).map(lens => {
                               const isLensSelected = !!(localMappings[section.slug]?.[lens.slug]);
                               const selectedIndices = localMappings[section.slug]?.[lens.slug] || [];

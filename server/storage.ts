@@ -1,8 +1,8 @@
 import { db } from "./db";
 import { 
-  users, inquiries, reflections, resources, meetings, reportSections, reportVersions, comments, appSettings, inquiryComments, justiceLenses, postReads, postReactions, inquiryMappings, sectionLensMappings,
-  type User, type Inquiry, type Reflection, type Resource, type Meeting, type ReportSection, type ReportVersion, type Comment, type AppSetting, type InquiryComment, type JusticeLens, type PostRead, type PostReaction, type InquiryMapping, type SectionLensMapping,
-  type InsertUser, type InsertInquiry, type InsertReflection, type InsertResource, type InsertMeeting, type InsertReportVersion, type InsertComment, type InsertSetting, type InsertInquiryComment, type InsertReportSection, type InsertJusticeLens, type InsertPostRead, type InsertPostReaction, type InsertInquiryMapping, type InsertSectionLensMapping
+  users, inquiries, reflections, resources, meetings, reportSections, reportVersions, comments, appSettings, inquiryComments, justiceLenses, postReads, postReactions, inquiryMappings, sectionLensMappings, sectionFocusContext,
+  type User, type Inquiry, type Reflection, type Resource, type Meeting, type ReportSection, type ReportVersion, type Comment, type AppSetting, type InquiryComment, type JusticeLens, type PostRead, type PostReaction, type InquiryMapping, type SectionLensMapping, type SectionFocusContext,
+  type InsertUser, type InsertInquiry, type InsertReflection, type InsertResource, type InsertMeeting, type InsertReportVersion, type InsertComment, type InsertSetting, type InsertInquiryComment, type InsertReportSection, type InsertJusticeLens, type InsertPostRead, type InsertPostReaction, type InsertInquiryMapping, type InsertSectionLensMapping, type InsertSectionFocusContext
 } from "@shared/schema";
 import { eq, desc, and } from "drizzle-orm";
 import session from "express-session";
@@ -88,6 +88,10 @@ export interface IStorage {
   // Section-Lens Mappings
   getSectionLensMappings(mappingId: number): Promise<SectionLensMapping[]>;
   saveSectionLensMappings(mappingId: number, mappings: InsertSectionLensMapping[]): Promise<void>;
+
+  // Section Focus Context
+  getSectionFocusContexts(mappingId: number): Promise<SectionFocusContext[]>;
+  saveSectionFocusContexts(mappingId: number, contexts: InsertSectionFocusContext[]): Promise<void>;
 
   // Seeding helpers
   seedReportSections(sections: InsertReportSection[]): Promise<void>;
@@ -455,6 +459,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteInquiryMapping(id: number): Promise<void> {
+    await db.delete(sectionFocusContext).where(eq(sectionFocusContext.mappingId, id));
     await db.delete(sectionLensMappings).where(eq(sectionLensMappings.mappingId, id));
     await db.delete(inquiryMappings).where(eq(inquiryMappings.id, id));
   }
@@ -473,6 +478,18 @@ export class DatabaseStorage implements IStorage {
     await db.delete(sectionLensMappings).where(eq(sectionLensMappings.mappingId, mappingId));
     if (mappings.length > 0) {
       await db.insert(sectionLensMappings).values(mappings);
+    }
+  }
+
+  // Section Focus Context
+  async getSectionFocusContexts(mappingId: number): Promise<SectionFocusContext[]> {
+    return await db.select().from(sectionFocusContext).where(eq(sectionFocusContext.mappingId, mappingId));
+  }
+
+  async saveSectionFocusContexts(mappingId: number, contexts: InsertSectionFocusContext[]): Promise<void> {
+    await db.delete(sectionFocusContext).where(eq(sectionFocusContext.mappingId, mappingId));
+    if (contexts.length > 0) {
+      await db.insert(sectionFocusContext).values(contexts);
     }
   }
 }

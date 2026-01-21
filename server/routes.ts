@@ -465,6 +465,21 @@ export async function registerRoutes(
     res.json({ success: true });
   });
 
+  app.get(api.inquiryMappings.getFocusContexts.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const contexts = await storage.getSectionFocusContexts(Number(req.params.id));
+    res.json(contexts);
+  });
+
+  app.post(api.inquiryMappings.saveFocusContexts.path, async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) return res.sendStatus(401);
+    const mappingId = Number(req.params.id);
+    const input = api.inquiryMappings.saveFocusContexts.input.parse(req.body);
+    const contextsWithId = input.map(c => ({ ...c, mappingId }));
+    await storage.saveSectionFocusContexts(mappingId, contextsWithId);
+    res.json({ success: true });
+  });
+
   // === AI INSIGHTS ===
   app.get('/api/ai/settings', async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);

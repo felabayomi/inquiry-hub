@@ -13,8 +13,10 @@ import {
   users,
   inquiryMappings,
   sectionLensMappings,
+  sectionFocusContext,
   reportSections,
-  justiceLenses
+  justiceLenses,
+  appSettings
 } from "@shared/schema";
 import { eq, and, desc, inArray } from "drizzle-orm";
 
@@ -278,9 +280,26 @@ async function getActiveMappingContext(sectionId: number): Promise<string> {
   const [section] = await db.select().from(reportSections).where(eq(reportSections.id, sectionId));
   if (!section) return "";
   
+  // Get the inquiry focus setting
+  const [inquiryFocusSetting] = await db.select().from(appSettings).where(eq(appSettings.key, "inquiry_focus"));
+  const inquiryFocus = inquiryFocusSetting?.value || "";
+  
   // Get active mapping
   const [activeMapping] = await db.select().from(inquiryMappings).where(eq(inquiryMappings.isActive, true)).limit(1);
-  if (!activeMapping) return "";
+  if (!activeMapping) {
+    // If no active mapping but we have an inquiry focus, still include it
+    if (inquiryFocus) {
+      return `\n\nIMPORTANT: This inquiry focuses on "${inquiryFocus}". Ensure your analysis explicitly references ${inquiryFocus} in themes, insights, and recommendations.`;
+    }
+    return "";
+  }
+  
+  // Get section focus context
+  const [focusCtx] = await db.select().from(sectionFocusContext)
+    .where(and(
+      eq(sectionFocusContext.mappingId, activeMapping.id),
+      eq(sectionFocusContext.sectionSlug, section.slug)
+    ));
   
   // Get section-lens mappings for this section
   const mappings = await db.select().from(sectionLensMappings)
@@ -289,13 +308,24 @@ async function getActiveMappingContext(sectionId: number): Promise<string> {
       eq(sectionLensMappings.sectionSlug, section.slug)
     ));
   
-  if (mappings.length === 0) return "";
-  
   // Get lens labels
   const lensData = await db.select().from(justiceLenses);
   const lensMap = Object.fromEntries(lensData.map(l => [l.slug, l]));
   
   // Build context string
+  const contextParts: string[] = [];
+  
+  // Add inquiry focus
+  if (inquiryFocus) {
+    contextParts.push(`This inquiry focuses on "${inquiryFocus}". Ensure your analysis explicitly references ${inquiryFocus} throughout.`);
+  }
+  
+  // Add section-specific focus context
+  if (focusCtx?.focusContext) {
+    contextParts.push(`Section-specific framing: ${focusCtx.focusContext}`);
+  }
+  
+  // Add lenses and indices
   const lensContextParts: string[] = [];
   for (const mapping of mappings) {
     const lens = lensMap[mapping.lensSlug];
@@ -307,9 +337,13 @@ async function getActiveMappingContext(sectionId: number): Promise<string> {
     }
   }
   
-  if (lensContextParts.length === 0) return "";
+  if (lensContextParts.length > 0) {
+    contextParts.push(`Analyze through these lenses and indices:\n${lensContextParts.join("\n")}`);
+  }
   
-  return `\n\nIMPORTANT: When analyzing this section, focus your analysis on these specific lenses and indices:\n${lensContextParts.join("\n")}\n\nUse these lenses to frame your themes, insights, and recommendations.`;
+  if (contextParts.length === 0) return "";
+  
+  return `\n\nIMPORTANT ANALYTICAL FRAMEWORK:\n${contextParts.join("\n\n")}\n\nUse this framework to shape your themes, insights, and recommendations.`;
 }
 
 export async function generateSectionSynthesis(sectionId: number): Promise<AiSummaryOutput> {

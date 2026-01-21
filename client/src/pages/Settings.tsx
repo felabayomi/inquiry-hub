@@ -240,6 +240,18 @@ export default function Settings() {
                 />
               </div>
             </div>
+            <div className="space-y-2 pt-4 border-t">
+              <Label>Inquiry Focus</Label>
+              <Input 
+                placeholder="e.g., Artificial Intelligence, Climate Change, Sustainable Development"
+                defaultValue={getSetting("inquiry_focus")}
+                onBlur={(e) => handleUpdate("inquiry_focus", e.target.value)}
+                data-testid="input-inquiry-focus"
+              />
+              <p className="text-xs text-muted-foreground">
+                The central focus of this cohort's inquiry. This will be explicitly referenced in AI synthesis.
+              </p>
+            </div>
           </CardContent>
         </Card>
 

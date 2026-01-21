@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import type { InquiryMapping, SectionLensMapping, InsertInquiryMapping, InsertSectionLensMapping } from "@shared/schema";
+import type { InquiryMapping, SectionLensMapping, SectionFocusContext, InsertInquiryMapping, InsertSectionLensMapping, InsertSectionFocusContext } from "@shared/schema";
 
 export function useInquiryMappings() {
   return useQuery<InquiryMapping[]>({
@@ -84,6 +84,31 @@ export function useSaveSectionMappings() {
     },
     onSuccess: (_, { mappingId }) => {
       queryClient.invalidateQueries({ queryKey: ["/api/inquiry-mappings", mappingId, "sections"] });
+    },
+  });
+}
+
+export function useSectionFocusContexts(mappingId: number | undefined) {
+  return useQuery<SectionFocusContext[]>({
+    queryKey: ["/api/inquiry-mappings", mappingId, "focus-contexts"],
+    queryFn: async () => {
+      if (!mappingId) return [];
+      const res = await fetch(`/api/inquiry-mappings/${mappingId}/focus-contexts`);
+      if (!res.ok) throw new Error("Failed to fetch focus contexts");
+      return res.json();
+    },
+    enabled: !!mappingId,
+  });
+}
+
+export function useSaveFocusContexts() {
+  return useMutation({
+    mutationFn: async ({ mappingId, contexts }: { mappingId: number; contexts: Omit<InsertSectionFocusContext, "mappingId">[] }) => {
+      const res = await apiRequest("POST", `/api/inquiry-mappings/${mappingId}/focus-contexts`, contexts);
+      return res.json();
+    },
+    onSuccess: (_, { mappingId }) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/inquiry-mappings", mappingId, "focus-contexts"] });
     },
   });
 }

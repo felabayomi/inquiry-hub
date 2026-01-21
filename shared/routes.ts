@@ -2,8 +2,8 @@ import { z } from 'zod';
 import { 
   insertUserSchema, insertInquirySchema, insertReflectionSchema, 
   insertResourceSchema, insertMeetingSchema, insertReportVersionSchema, 
-  insertCommentSchema, insertSettingSchema, insertInquiryCommentSchema, insertReportSectionSchema, insertJusticeLensSchema, insertInquiryMappingSchema, insertSectionLensMappingSchema,
-  users, inquiries, reflections, resources, meetings, reportSections, reportVersions, comments, appSettings, inquiryComments, justiceLenses, inquiryMappings, sectionLensMappings
+  insertCommentSchema, insertSettingSchema, insertInquiryCommentSchema, insertReportSectionSchema, insertJusticeLensSchema, insertInquiryMappingSchema, insertSectionLensMappingSchema, insertSectionFocusContextSchema,
+  users, inquiries, reflections, resources, meetings, reportSections, reportVersions, comments, appSettings, inquiryComments, justiceLenses, inquiryMappings, sectionLensMappings, sectionFocusContext
 } from './schema';
 
 // Shared error schemas
@@ -381,6 +381,21 @@ export const api = {
       method: 'POST' as const,
       path: '/api/inquiry-mappings/:id/sections',
       input: z.array(insertSectionLensMappingSchema.omit({ mappingId: true })),
+      responses: {
+        200: z.object({ success: z.boolean() }),
+      },
+    },
+    getFocusContexts: {
+      method: 'GET' as const,
+      path: '/api/inquiry-mappings/:id/focus-contexts',
+      responses: {
+        200: z.array(z.custom<typeof sectionFocusContext.$inferSelect>()),
+      },
+    },
+    saveFocusContexts: {
+      method: 'POST' as const,
+      path: '/api/inquiry-mappings/:id/focus-contexts',
+      input: z.array(insertSectionFocusContextSchema.omit({ mappingId: true })),
       responses: {
         200: z.object({ success: z.boolean() }),
       },
