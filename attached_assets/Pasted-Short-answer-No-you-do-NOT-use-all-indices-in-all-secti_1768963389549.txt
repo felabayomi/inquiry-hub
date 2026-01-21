@@ -1,0 +1,115 @@
+Short answer: No, you do NOT use all indices in all sections.
+You use selected indices per section, guided by the mapping.
+
+Here is the clear, practical rule, then the exact mapping with indices so you know what goes where.
+
+⸻
+
+The Rule (keep this in mind)
+	•	Sections focus on a subset of lenses
+	•	Each lens contributes only its most relevant indices to that section
+	•	Across the whole report, all indices appear, but not everywhere
+
+This prevents repetition and keeps the inquiry strategic.
+
+⸻
+
+Section-by-Section Mapping (with indices)
+
+Introduction / Context
+
+Lenses: resources, habitat, conflict
+	•	Resources: land availability, water access, resource competition
+	•	Habitat: habitat loss, land-use change, fragmentation
+	•	Conflict: human–wildlife encounters, conflict frequency
+
+Purpose: establish the problem landscape.
+
+⸻
+
+Inquiry Question(s)
+
+Lenses: conflict, livelihoods, investment
+	•	Conflict: crop damage, livestock predation, wildlife mortality
+	•	Livelihoods: agricultural income, food security
+	•	Investment: conservation funding, development spending
+
+Purpose: frame what the inquiry seeks to understand.
+
+⸻
+
+Methods / Learning Pathway
+
+Lenses: resources, livelihoods, investment
+	•	Resources: water scarcity, energy demand
+	•	Livelihoods: economic vulnerability, tourism dependence
+	•	Investment: funding flows, technology deployment
+
+Purpose: explain how evidence is gathered and analyzed.
+
+⸻
+
+Key Insights
+
+Lenses: resources, habitat, livelihoods, conflict
+	•	Resources: depletion, infrastructure pressure
+	•	Habitat: biodiversity levels, migration corridors
+	•	Livelihoods: income loss, compensation mechanisms
+	•	Conflict: retaliation, human and wildlife losses
+
+Purpose: synthesize what emerged from the inquiry.
+
+⸻
+
+Ethical & Justice Considerations
+
+Lenses: livelihoods, investment, futures
++ Justice Lens applied here
+	•	Livelihoods: economic vulnerability, labor dependence
+	•	Investment: exclusion from funding, long-term stability
+	•	Futures: intergenerational outcomes, systemic risk
+
+Purpose: apply who benefits, who is harmed, labor, and power.
+
+⸻
+
+Implications for Practice
+
+Lenses: conflict, livelihoods, investment
+	•	Conflict: mitigation strategies, response systems
+	•	Livelihoods: alternative income, resilience strategies
+	•	Investment: policy alignment, funding priorities
+
+Purpose: translate insights into action.
+
+⸻
+
+Recommendations / Next Steps
+
+Lenses: investment, resources, futures
+	•	Investment: sustainable finance, long-term funding
+	•	Resources: shared governance, resource management
+	•	Futures: coexistence models, adaptive capacity
+
+Purpose: propose forward-looking strategies.
+
+⸻
+
+References
+
+Lenses: all
+
+Purpose: support the full analytical framework.
+
+⸻
+
+Final clarity statement (important)
+
+👉 You do not apply all indices everywhere.
+👉 You strategically deploy them based on the section’s purpose.
+👉 This is exactly how a strong, readable, and defensible report is built.
+
+If you want, next I can:
+	•	Reduce each section to 2–3 “must-use” indices, or
+	•	Create a one-page matrix you can paste directly into your tool, or
+	•	Help you justify this structure in methodology language.

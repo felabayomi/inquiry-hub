@@ -108,6 +108,24 @@ export const justiceLenses = pgTable("justice_lenses", {
   indices: text("indices").array(), // Array of index items for this lens
 });
 
+// === INQUIRY MAPPINGS (AI Inquiry Templates) ===
+export const inquiryMappings = pgTable("inquiry_mappings", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(), // "Human-Wildlife Conflict Inquiry"
+  description: text("description"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// === SECTION-LENS MAPPINGS (Which lenses/indices apply to each section) ===
+export const sectionLensMappings = pgTable("section_lens_mappings", {
+  id: serial("id").primaryKey(),
+  mappingId: integer("mapping_id").references(() => inquiryMappings.id).notNull(),
+  sectionSlug: text("section_slug").notNull(), // "introduction", "methods", etc.
+  lensSlug: text("lens_slug").notNull(), // "resources", "conflict", etc.
+  indices: text("indices").array(), // ["land", "water", "energy"] - specific indices to use
+});
+
 // === POST READS (Track who viewed a report version) ===
 export const postReads = pgTable("post_reads", {
   id: serial("id").primaryKey(),
@@ -231,6 +249,8 @@ export const insertCommentSchema = createInsertSchema(comments).omit({ id: true,
 export const insertInquiryCommentSchema = createInsertSchema(inquiryComments).omit({ id: true, createdAt: true });
 export const insertSettingSchema = createInsertSchema(appSettings);
 export const insertJusticeLensSchema = createInsertSchema(justiceLenses).omit({ id: true });
+export const insertInquiryMappingSchema = createInsertSchema(inquiryMappings).omit({ id: true, createdAt: true });
+export const insertSectionLensMappingSchema = createInsertSchema(sectionLensMappings).omit({ id: true });
 export const insertPostReadSchema = createInsertSchema(postReads).omit({ id: true, readAt: true });
 export const insertPostReactionSchema = createInsertSchema(postReactions).omit({ id: true, createdAt: true });
 export const insertAiContentChunkSchema = createInsertSchema(aiContentChunks).omit({ id: true, createdAt: true });
@@ -251,6 +271,8 @@ export type Comment = typeof comments.$inferSelect;
 export type InquiryComment = typeof inquiryComments.$inferSelect;
 export type AppSetting = typeof appSettings.$inferSelect;
 export type JusticeLens = typeof justiceLenses.$inferSelect;
+export type InquiryMapping = typeof inquiryMappings.$inferSelect;
+export type SectionLensMapping = typeof sectionLensMappings.$inferSelect;
 export type PostRead = typeof postReads.$inferSelect;
 export type PostReaction = typeof postReactions.$inferSelect;
 export type AiContentChunk = typeof aiContentChunks.$inferSelect;
@@ -270,6 +292,8 @@ export type InsertComment = z.infer<typeof insertCommentSchema>;
 export type InsertInquiryComment = z.infer<typeof insertInquiryCommentSchema>;
 export type InsertSetting = z.infer<typeof insertSettingSchema>;
 export type InsertJusticeLens = z.infer<typeof insertJusticeLensSchema>;
+export type InsertInquiryMapping = z.infer<typeof insertInquiryMappingSchema>;
+export type InsertSectionLensMapping = z.infer<typeof insertSectionLensMappingSchema>;
 export type InsertPostRead = z.infer<typeof insertPostReadSchema>;
 export type InsertPostReaction = z.infer<typeof insertPostReactionSchema>;
 export type InsertAiContentChunk = z.infer<typeof insertAiContentChunkSchema>;
