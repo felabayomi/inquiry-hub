@@ -189,18 +189,37 @@ export default function InquiryMappingPage() {
                     onClick={() => setSelectedMappingId(mapping.id)}
                     data-testid={`card-mapping-${mapping.id}`}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
                         {activeMapping?.id === mapping.id ? (
-                          <CheckCircle className="h-4 w-4 text-green-500" />
+                          <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
                         ) : (
-                          <Circle className="h-4 w-4 text-muted-foreground" />
+                          <Circle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                         )}
-                        <span className="font-medium">{mapping.name}</span>
+                        <span className="font-medium truncate">{mapping.name}</span>
                       </div>
-                      {activeMapping?.id === mapping.id && (
-                        <Badge variant="secondary" className="text-xs">Active</Badge>
-                      )}
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {activeMapping?.id === mapping.id && (
+                          <Badge variant="secondary" className="text-xs">Active</Badge>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (confirm("Delete this mapping?")) {
+                              deleteMapping.mutate(mapping.id);
+                              if (selectedMappingId === mapping.id) {
+                                setSelectedMappingId(null);
+                              }
+                            }
+                          }}
+                          data-testid={`button-delete-mapping-${mapping.id}`}
+                        >
+                          <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                        </Button>
+                      </div>
                     </div>
                     {mapping.description && (
                       <p className="text-xs text-muted-foreground mt-1 ml-6">{mapping.description}</p>
