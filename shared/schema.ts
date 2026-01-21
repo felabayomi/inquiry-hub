@@ -105,6 +105,7 @@ export const justiceLenses = pgTable("justice_lenses", {
   slug: text("slug").notNull().unique(), // "who_benefits", "labor", etc.
   label: text("label").notNull(), // "Who benefits?", "Invisible Labor", etc.
   orderIndex: integer("order_index").notNull().default(0),
+  indices: text("indices").array(), // Array of index items for this lens
 });
 
 // === POST READS (Track who viewed a report version) ===
