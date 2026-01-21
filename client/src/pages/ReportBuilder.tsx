@@ -466,7 +466,7 @@ function SectionFeed({
               <SelectTrigger className="w-full" data-testid="select-post-visibility">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-50 bg-background">
                 <SelectItem value="private">
                   <span className="flex items-center gap-2"><Lock className="h-3 w-3" /> Just me</span>
                 </SelectItem>
