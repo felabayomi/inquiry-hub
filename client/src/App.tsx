@@ -11,10 +11,8 @@ import AuthPage from "@/pages/Auth";
 import Home from "@/pages/Home";
 import Inquiry from "@/pages/Inquiry";
 import Resources from "@/pages/Resources";
-import Meetings from "@/pages/Meetings";
 import ReportBuilder from "@/pages/ReportBuilder";
 import Settings from "@/pages/Settings";
-import CohortOverview from "@/pages/CohortOverview";
 import Account from "@/pages/Account";
 import AIInsights from "@/pages/AIInsights";
 import NotFound from "@/pages/not-found";
@@ -74,20 +72,12 @@ function Router() {
         <ProtectedRoute component={Resources} />
       </Route>
       
-      <Route path="/meetings">
-        <ProtectedRoute component={Meetings} />
-      </Route>
-      
       <Route path="/report">
         <ProtectedRoute component={ReportBuilder} />
       </Route>
       
       <Route path="/settings">
-        <ProtectedRoute component={Settings} adminOnly />
-      </Route>
-
-      <Route path="/cohort">
-        <ProtectedRoute component={CohortOverview} adminOnly />
+        <ProtectedRoute component={Settings} />
       </Route>
 
       <Route path="/account">

@@ -81,7 +81,7 @@ export async function indexContent(
   content: string,
   sectionId?: number,
   metadata?: Record<string, unknown>,
-  visibility: "private" | "group" | "cohort" = "cohort"
+  visibility: "private" | "group" | "cohort" = "private"
 ) {
   const contentHash = computeHash(content);
   

@@ -8,10 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { PenLine, Save, Trash2, Sparkles, Lock, Users, Globe } from "lucide-react";
+import { PenLine, Save, Trash2, Sparkles } from "lucide-react";
 
 export default function Inquiry() {
   const { data: inquiry, isLoading } = useMyInquiry();
@@ -22,7 +20,6 @@ export default function Inquiry() {
   const [question, setQuestion] = useState("");
   const [pathway, setPathway] = useState("");
   const [newReflection, setNewReflection] = useState("");
-  const [reflectionVisibility, setReflectionVisibility] = useState<"private" | "group" | "cohort">("private");
   
   // Initialize form state when data loads
   if (inquiry && question === "" && pathway === "") {
@@ -40,28 +37,9 @@ export default function Inquiry() {
       inquiryId: inquiry.id,
       content: newReflection,
       weekOf: new Date().toISOString(),
-      visibility: reflectionVisibility,
+      visibility: "private",
     });
     setNewReflection("");
-    setReflectionVisibility("private");
-  };
-
-  const getVisibilityIcon = (visibility: string) => {
-    switch (visibility) {
-      case "private": return <Lock className="h-3 w-3" />;
-      case "group": return <Users className="h-3 w-3" />;
-      case "cohort": return <Globe className="h-3 w-3" />;
-      default: return null;
-    }
-  };
-
-  const getVisibilityLabel = (visibility: string) => {
-    switch (visibility) {
-      case "private": return "Just me";
-      case "group": return "My group";
-      case "cohort": return "Entire cohort";
-      default: return visibility;
-    }
   };
 
   if (isLoading) {
@@ -137,15 +115,9 @@ export default function Inquiry() {
                 <Card key={ref.id} className="paper-card hover:shadow-md transition-shadow group">
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-center gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground font-mono bg-slate-100 px-2 py-1 rounded">
-                          Week of {format(new Date(ref.weekOf), "MMM d")}
-                        </span>
-                        <Badge variant="outline" className="text-xs gap-1">
-                          {getVisibilityIcon(ref.visibility || "private")}
-                          {getVisibilityLabel(ref.visibility || "private")}
-                        </Badge>
-                      </div>
+                      <span className="text-sm text-muted-foreground font-mono bg-slate-100 px-2 py-1 rounded">
+                        Week of {format(new Date(ref.weekOf), "MMM d")}
+                      </span>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -186,28 +158,10 @@ export default function Inquiry() {
                 <Textarea
                   value={newReflection}
                   onChange={(e) => setNewReflection(e.target.value)}
-                  placeholder="What did you learn this week? How has your thinking evolved?"
+                  placeholder="What did you learn? How has your thinking evolved?"
                   className="h-48 resize-none bg-white"
+                  data-testid="input-reflection"
                 />
-                <div className="space-y-2">
-                  <Label className="text-sm">Who can see this?</Label>
-                  <Select value={reflectionVisibility} onValueChange={(v) => setReflectionVisibility(v as "private" | "group" | "cohort")}>
-                    <SelectTrigger className="bg-white" data-testid="select-visibility">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="private">
-                        <span className="flex items-center gap-2"><Lock className="h-3 w-3" /> Just me</span>
-                      </SelectItem>
-                      <SelectItem value="group">
-                        <span className="flex items-center gap-2"><Users className="h-3 w-3" /> My group</span>
-                      </SelectItem>
-                      <SelectItem value="cohort">
-                        <span className="flex items-center gap-2"><Globe className="h-3 w-3" /> Entire cohort</span>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
                 <Button 
                   onClick={handleAddReflection} 
                   disabled={!inquiry || isAddingReflection || !newReflection.trim()}

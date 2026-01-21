@@ -3,7 +3,6 @@ import {
   LayoutDashboard, 
   BookOpen, 
   Library, 
-  CalendarDays, 
   FileText, 
   Settings,
   LogOut,
@@ -11,7 +10,6 @@ import {
   Home,
   Menu,
   X,
-  Users,
   Sparkles
 } from "lucide-react";
 import { useUser, useLogout } from "@/hooks/use-auth";
@@ -28,17 +26,12 @@ export function Sidebar() {
   const navItems = [
     { href: "/", label: "Dashboard", icon: LayoutDashboard },
     { href: "/inquiry", label: "My Inquiry", icon: BookOpen },
-    { href: "/resources", label: "Shared Resources", icon: Library },
-    { href: "/meetings", label: "Meetings", icon: CalendarDays },
-    { href: "/report", label: "Report Builder", icon: FileText },
+    { href: "/resources", label: "Resources", icon: Library },
+    { href: "/report", label: "Documents", icon: FileText },
     { href: "/ai-insights", label: "AI Insights", icon: Sparkles },
     { href: "/account", label: "My Account", icon: User },
+    { href: "/settings", label: "Settings", icon: Settings },
   ];
-
-  if (user?.role === "admin") {
-    navItems.push({ href: "/cohort", label: "Cohort Overview", icon: Users });
-    navItems.push({ href: "/settings", label: "Admin Settings", icon: Settings });
-  }
 
   const toggleSidebar = () => setIsOpen(!isOpen);
 
@@ -56,7 +49,7 @@ export function Sidebar() {
             </Button>
           </Link>
         </div>
-        <h1 className="text-lg font-serif font-bold text-white truncate">Cohort Inquiry</h1>
+        <h1 className="text-lg font-serif font-bold text-white truncate">Research Journal</h1>
         <div className="flex items-center gap-2">
           {user?.role === "admin" && (
             <Link href="/settings">
@@ -79,9 +72,9 @@ export function Sidebar() {
         <div className="p-6 flex items-center justify-between">
           <div>
             <h1 className="text-xl font-serif font-bold text-slate-100 tracking-tight">
-              Cohort Inquiry
+              Research Journal
             </h1>
-            <p className="text-xs text-slate-400 mt-1 uppercase tracking-wider font-medium">Research Collective</p>
+            <p className="text-xs text-slate-400 mt-1 uppercase tracking-wider font-medium">Personal Inquiry Tracker</p>
           </div>
           <Link href="/">
             <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white md:hidden">
