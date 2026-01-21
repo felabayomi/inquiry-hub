@@ -70,7 +70,15 @@ export function setupAuth(app: Express) {
 
   app.post("/api/register", async (req, res, next) => {
     try {
-      const { password, ...userData } = req.body;
+      const { inviteCode, password, ...userData } = req.body;
+      
+      // Verify magic code
+      const magicCodeSetting = await storage.getSetting('magic_code');
+      const validCode = magicCodeSetting?.value || 'cohort2026'; // Fallback
+      
+      if (inviteCode !== validCode) {
+        return res.status(400).json({ message: "Invalid invite code" });
+      }
 
       const existingUser = await storage.getUserByUsername(userData.username);
       if (existingUser) {

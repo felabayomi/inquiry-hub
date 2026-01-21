@@ -38,8 +38,8 @@ export default function AuthPage() {
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h1 className="text-4xl font-serif font-bold text-slate-900 tracking-tight">Research Journal</h1>
-          <p className="mt-2 text-slate-600">Personal inquiry and knowledge tracker</p>
+          <h1 className="text-4xl font-serif font-bold text-slate-900 tracking-tight">Cohort Inquiry</h1>
+          <p className="mt-2 text-slate-600">Collaborative research and reporting platform</p>
         </div>
 
         <Card className="border-slate-200 shadow-xl shadow-slate-200/50">
@@ -75,15 +75,27 @@ export default function AuthPage() {
               </div>
 
               {activeTab === "register" && (
-                <div className="space-y-2">
-                  <Label htmlFor="fullname">Full Name</Label>
-                  <Input
-                    id="fullname"
-                    value={formData.fullName}
-                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                    required
-                  />
-                </div>
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="fullname">Full Name</Label>
+                    <Input
+                      id="fullname"
+                      value={formData.fullName}
+                      onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="invite">Cohort Invite Code</Label>
+                    <Input
+                      id="invite"
+                      value={formData.inviteCode}
+                      onChange={(e) => setFormData({ ...formData, inviteCode: e.target.value })}
+                      required
+                      placeholder="Ask your administrator"
+                    />
+                  </div>
+                </>
               )}
 
               {activeTab === "login" && (

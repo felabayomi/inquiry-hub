@@ -78,8 +78,9 @@ export async function registerRoutes(
     const input = api.reflections.create.input.parse(req.body);
     const reflection = await storage.createReflection(input);
     
-    // Auto-index for AI (always private for personal journal)
+    // Auto-index for AI (use visibility from input, default to private)
     try {
+      const visibility = (input.visibility || "private") as "private" | "group" | "cohort";
       await indexContent(
         "reflection",
         reflection.id,
@@ -87,7 +88,7 @@ export async function registerRoutes(
         input.content,
         undefined,
         { weekOf: input.weekOf },
-        "private"
+        visibility
       );
     } catch (e) {
       console.error("Failed to index reflection for AI:", e);
@@ -108,8 +109,9 @@ export async function registerRoutes(
     const input = api.resources.create.input.parse(req.body);
     const resource = await storage.createResource({ ...input, userId: req.user.id });
     
-    // Auto-index for AI (always private for personal journal)
+    // Auto-index for AI (use visibility from input, default to cohort)
     try {
+      const visibility = (input.visibility || "cohort") as "private" | "group" | "cohort";
       const contentToIndex = `${input.title}\n\n${input.annotation || ""}\n\n${input.url}`;
       await indexContent(
         "resource",
@@ -118,7 +120,7 @@ export async function registerRoutes(
         contentToIndex,
         undefined,
         { tags: input.tags },
-        "private"
+        visibility
       );
     } catch (e) {
       console.error("Failed to index resource for AI:", e);
@@ -196,8 +198,9 @@ export async function registerRoutes(
     const input = api.report.saveVersion.input.parse(req.body);
     const version = await storage.createReportVersion({ ...input, userId: req.user.id });
     
-    // Auto-index for AI (always private for personal journal)
+    // Auto-index for AI (use visibility from input, default to cohort)
     try {
+      const visibility = (input.visibility || "cohort") as "private" | "group" | "cohort";
       await indexContent(
         "report_post",
         version.id,
@@ -205,7 +208,7 @@ export async function registerRoutes(
         input.content,
         input.sectionId,
         { justiceLensTags: input.justiceLensTags },
-        "private"
+        visibility
       );
     } catch (e) {
       console.error("Failed to index report version for AI:", e);
