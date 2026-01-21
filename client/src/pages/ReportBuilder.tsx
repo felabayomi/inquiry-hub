@@ -384,22 +384,80 @@ function SectionFeed({
             className="min-h-[150px] mb-3 font-serif"
             data-testid="textarea-new-post"
           />
-          <div className="flex flex-wrap gap-2 mb-3">
-            {(justiceLenses || []).map(lens => (
-              <Badge
-                key={lens.slug}
-                variant={tags.includes(lens.slug) ? "default" : "outline"}
-                className="cursor-pointer"
-                onClick={() => {
-                  if (tags.includes(lens.slug)) {
-                    setTags(tags.filter(t => t !== lens.slug));
-                  } else {
-                    setTags([...tags, lens.slug]);
-                  }
-                }}
-              >
-                {lens.label}
-              </Badge>
+          <div className="mb-3 space-y-4">
+            {/* Justice Lenses */}
+            <div className="p-3 border rounded-lg bg-slate-50/50">
+              <Label className="text-xs font-semibold text-slate-700 mb-2 block">Justice Lenses</Label>
+              <div className="flex flex-wrap gap-2">
+                {(justiceLenses || [])
+                  .filter(l => ['who_benefits', 'who_is_harmed', 'labor', 'power'].includes(l.slug))
+                  .map(lens => (
+                  <Badge
+                    key={lens.slug}
+                    variant={tags.includes(lens.slug) ? "default" : "outline"}
+                    className="cursor-pointer"
+                    onClick={() => {
+                      if (tags.includes(lens.slug)) {
+                        setTags(tags.filter(t => t !== lens.slug));
+                      } else {
+                        setTags([...tags, lens.slug]);
+                      }
+                    }}
+                    data-testid={`button-lens-${lens.slug}`}
+                  >
+                    {lens.label}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+            
+            {/* Custom Lenses with Indices */}
+            {(justiceLenses || [])
+              .filter(l => !['who_benefits', 'who_is_harmed', 'labor', 'power'].includes(l.slug))
+              .map(lens => (
+              <div key={lens.slug} className="p-3 border rounded-lg bg-slate-50/50">
+                <Label className="text-xs font-semibold text-slate-700 mb-2 block">{lens.label}</Label>
+                <div className="flex flex-wrap gap-2">
+                  {lens.indices && lens.indices.length > 0 ? (
+                    lens.indices.map((indexItem, i) => {
+                      const indexSlug = indexItem.toLowerCase().replace(/\s+/g, '_');
+                      const tagValue = `${lens.slug}:${indexSlug}`;
+                      return (
+                        <Badge
+                          key={i}
+                          variant={tags.includes(tagValue) ? "default" : "outline"}
+                          className="cursor-pointer"
+                          onClick={() => {
+                            if (tags.includes(tagValue)) {
+                              setTags(tags.filter(t => t !== tagValue));
+                            } else {
+                              setTags([...tags, tagValue]);
+                            }
+                          }}
+                          data-testid={`button-index-${lens.slug}-${indexSlug}`}
+                        >
+                          {indexItem}
+                        </Badge>
+                      );
+                    })
+                  ) : (
+                    <Badge
+                      variant={tags.includes(lens.slug) ? "default" : "outline"}
+                      className="cursor-pointer"
+                      onClick={() => {
+                        if (tags.includes(lens.slug)) {
+                          setTags(tags.filter(t => t !== lens.slug));
+                        } else {
+                          setTags([...tags, lens.slug]);
+                        }
+                      }}
+                      data-testid={`button-lens-${lens.slug}`}
+                    >
+                      {lens.label}
+                    </Badge>
+                  )}
+                </div>
+              </div>
             ))}
           </div>
           <div className="mb-3">
