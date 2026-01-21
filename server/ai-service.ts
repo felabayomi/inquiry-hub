@@ -140,9 +140,12 @@ export async function getUserAiSettings(userId: number) {
 }
 
 export async function updateUserAiSettings(userId: number, includePrivateInAI: boolean) {
-  const existing = await getUserAiSettings(userId);
+  // Check if record actually exists in database (not using default)
+  const [existing] = await db.select()
+    .from(userAiSettings)
+    .where(eq(userAiSettings.userId, userId));
   
-  if (existing.userId === userId) {
+  if (existing) {
     await db.update(userAiSettings)
       .set({ includePrivateInAI, updatedAt: new Date() })
       .where(eq(userAiSettings.userId, userId));
