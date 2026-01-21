@@ -138,7 +138,9 @@ export const api = {
     create: {
       method: 'POST' as const,
       path: '/api/meetings',
-      input: insertMeetingSchema,
+      input: insertMeetingSchema.extend({
+        date: z.coerce.date(),
+      }),
       responses: {
         201: z.custom<typeof meetings.$inferSelect>(),
       },
@@ -146,7 +148,9 @@ export const api = {
     update: {
       method: 'PATCH' as const,
       path: '/api/meetings/:id',
-      input: insertMeetingSchema.partial(),
+      input: insertMeetingSchema.extend({
+        date: z.coerce.date(),
+      }).partial(),
       responses: {
         200: z.custom<typeof meetings.$inferSelect>(),
       },
