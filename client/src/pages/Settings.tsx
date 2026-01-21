@@ -59,7 +59,7 @@ export default function Settings() {
     orderIndex: 0
   });
   const [editingLens, setEditingLens] = useState<JusticeLens | null>(null);
-  const [editLensForm, setEditLensForm] = useState({ label: "", slug: "" });
+  const [editLensForm, setEditLensForm] = useState({ label: "", slug: "", indices: "" });
   const [resetPasswordUser, setResetPasswordUser] = useState<User | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [toggleAdminUser, setToggleAdminUser] = useState<User | null>(null);
@@ -155,17 +155,26 @@ export default function Settings() {
 
   const openEditLensDialog = (lens: JusticeLens) => {
     setEditingLens(lens);
-    setEditLensForm({ label: lens.label, slug: lens.slug });
+    setEditLensForm({ 
+      label: lens.label, 
+      slug: lens.slug, 
+      indices: lens.indices?.join(", ") || "" 
+    });
   };
 
   const handleSaveLens = () => {
     if (!editingLens || !editLensForm.label || !editLensForm.slug) return;
+    const indicesArray = editLensForm.indices
+      .split(",")
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
     updateLens({ 
       id: editingLens.id, 
       data: { 
         label: editLensForm.label, 
         slug: editLensForm.slug,
-        orderIndex: editingLens.orderIndex 
+        orderIndex: editingLens.orderIndex,
+        indices: indicesArray.length > 0 ? indicesArray : null
       } 
     }, {
       onSuccess: () => {
@@ -537,6 +546,15 @@ export default function Settings() {
                         <div className="flex-1">
                           <p className="font-medium text-slate-900">{lens.label}</p>
                           <p className="text-xs text-muted-foreground">{lens.slug}</p>
+                          {lens.indices && lens.indices.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {lens.indices.map((index, i) => (
+                                <Badge key={i} variant="outline" className="text-xs font-normal">
+                                  {index}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -604,6 +622,16 @@ export default function Settings() {
                   data-testid="input-edit-lens-slug"
                 />
                 <p className="text-xs text-muted-foreground">Used internally to identify this lens. Use lowercase letters and underscores.</p>
+              </div>
+              <div className="space-y-2">
+                <Label>Indices (comma-separated)</Label>
+                <Input 
+                  value={editLensForm.indices}
+                  onChange={(e) => setEditLensForm({ ...editLensForm, indices: e.target.value })}
+                  placeholder="e.g. Land, Water, Energy, Materials"
+                  data-testid="input-edit-lens-indices"
+                />
+                <p className="text-xs text-muted-foreground">Enter index items separated by commas. These are sub-topics for this lens.</p>
               </div>
             </div>
             <DialogFooter>
