@@ -1,0 +1,96 @@
+Short answer: it is implied, but not explicit enough yet — and for an AI-focused inquiry, you should name AI clearly once per section so reviewers and the report builder never miss it.
+
+Here is the clean confirmation + fix, without changing your structure.
+
+⸻
+
+Is AI implied in your current mapping?
+
+Yes, implicitly, because:
+	•	Resources → energy, infrastructure, data systems
+	•	Investment → technology funding, platforms
+	•	Futures → technological trajectories
+
+However, implication is risky in inquiry frameworks.
+For an AI impact report, AI should be explicit, not assumed.
+
+⸻
+
+How to make AI explicit (without rewriting everything)
+
+You keep the same mapping, but add AI-specific framing to each section.
+
+Below is your revised mapping, showing where AI is explicitly centered.
+
+⸻
+
+Introduction / Context
+
+→ resources, habitat, conflict (AI context)
+AI-driven infrastructure, data systems, and automation increase energy use, land demand, and surveillance in conservation, influencing human–wildlife conflict.
+
+⸻
+
+Inquiry Question(s)
+
+→ conflict, livelihoods, investment (AI focus)
+How AI tools affect wildlife monitoring, conflict prediction, livelihoods, and economic investment decisions.
+
+⸻
+
+Methods / Learning Pathway
+
+→ resources, livelihoods, investment (AI systems)
+Analysis of AI technologies (monitoring, prediction, automation), their resource use, and economic deployment in environmental contexts.
+
+⸻
+
+Key Insights
+
+→ resources, habitat, livelihoods, conflict (AI impacts)
+Observed ecological and economic effects of AI adoption, including resource intensity, habitat outcomes, labor shifts, and conflict dynamics.
+
+⸻
+
+Ethical & Justice Considerations
+
+→ livelihoods, investment, futures + justice lens (AI impacts)
+Justice implications of AI-driven environmental management, funding priorities, labor displacement, and long-term ecological risk.
+
+⸻
+
+Implications for Practice
+
+→ conflict, livelihoods, investment (AI governance)
+How AI should be deployed, limited, or redesigned to reduce ecological harm and economic inequity.
+
+⸻
+
+Recommendations / Next Steps
+
+→ investment, resources, futures (AI pathways)
+Guidance on sustainable, just, and ecologically responsible AI use.
+
+⸻
+
+References
+
+→ all lenses + AI literature
+
+⸻
+
+One-sentence assurance (use this if needed)
+
+This inquiry examines how artificial intelligence systems shape ecological outcomes and economic structures, using wildlife and human–wildlife conflict as a focal context across resources, habitat, conflict, livelihoods, investment, and futures.
+
+⸻
+
+Final clarity
+	•	Your structure is sound
+	•	AI was implied, but now it is unmistakably explicit
+	•	This framing is defensible, reviewer-proof, and aligned with AI impact inquiry standards
+
+If you want, I can next:
+	•	Rewrite this as a methodology justification paragraph, or
+	•	Help you label the inquiry as AI–Ecology–Economics in one line, or
+	•	Create a final synthesis paragraph that explicitly names AI throughout.
