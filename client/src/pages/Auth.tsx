@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLogin, useRegister } from "@/hooks/use-auth";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -46,8 +46,8 @@ export default function AuthPage() {
           <CardHeader>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Sign In</TabsTrigger>
-                <TabsTrigger value="register">Register</TabsTrigger>
+                <TabsTrigger value="login" data-testid="tab-login">Sign In</TabsTrigger>
+                <TabsTrigger value="register" data-testid="tab-register">Register</TabsTrigger>
               </TabsList>
             </Tabs>
           </CardHeader>
@@ -57,6 +57,7 @@ export default function AuthPage() {
                 <Label htmlFor="username">Username</Label>
                 <Input
                   id="username"
+                  data-testid="input-username"
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   required
@@ -68,6 +69,7 @@ export default function AuthPage() {
                 <Input
                   id="password"
                   type="password"
+                  data-testid="input-password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   required
@@ -80,6 +82,7 @@ export default function AuthPage() {
                     <Label htmlFor="fullname">Full Name</Label>
                     <Input
                       id="fullname"
+                      data-testid="input-fullname"
                       value={formData.fullName}
                       onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                       required
@@ -89,6 +92,7 @@ export default function AuthPage() {
                     <Label htmlFor="invite">Cohort Invite Code</Label>
                     <Input
                       id="invite"
+                      data-testid="input-invite-code"
                       value={formData.inviteCode}
                       onChange={(e) => setFormData({ ...formData, inviteCode: e.target.value })}
                       required
@@ -103,6 +107,7 @@ export default function AuthPage() {
                   <input
                     type="checkbox"
                     id="keep-signed-in"
+                    data-testid="checkbox-keep-signed-in"
                     checked={keepMeSignedIn}
                     onChange={(e) => setKeepMeSignedIn(e.target.checked)}
                     className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
@@ -115,6 +120,7 @@ export default function AuthPage() {
 
               <Button 
                 type="submit" 
+                data-testid="button-submit"
                 className="w-full mt-6 bg-slate-900 hover:bg-slate-800 text-white transition-all duration-300" 
                 disabled={isLoginPending || isRegisterPending}
               >
@@ -124,6 +130,21 @@ export default function AuthPage() {
             </form>
           </CardContent>
         </Card>
+
+        <div className="flex justify-center gap-4 text-sm text-slate-500">
+          <Link href="/help">
+            <span className="hover:text-slate-700 cursor-pointer" data-testid="link-help">Help</span>
+          </Link>
+          <Link href="/about">
+            <span className="hover:text-slate-700 cursor-pointer" data-testid="link-about">About</span>
+          </Link>
+          <Link href="/privacy">
+            <span className="hover:text-slate-700 cursor-pointer" data-testid="link-privacy">Privacy</span>
+          </Link>
+          <Link href="/terms">
+            <span className="hover:text-slate-700 cursor-pointer" data-testid="link-terms">Terms</span>
+          </Link>
+        </div>
       </div>
     </div>
   );

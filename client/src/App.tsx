@@ -102,21 +102,10 @@ function Router() {
         <ProtectedRoute component={AIInsights} />
       </Route>
 
-      <Route path="/about">
-        <ProtectedRoute component={About} />
-      </Route>
-
-      <Route path="/privacy">
-        <ProtectedRoute component={Privacy} />
-      </Route>
-
-      <Route path="/terms">
-        <ProtectedRoute component={Terms} />
-      </Route>
-
-      <Route path="/help">
-        <ProtectedRoute component={Help} />
-      </Route>
+      <Route path="/about" component={About} />
+      <Route path="/privacy" component={Privacy} />
+      <Route path="/terms" component={Terms} />
+      <Route path="/help" component={Help} />
 
       <Route component={NotFound} />
     </Switch>

@@ -117,8 +117,18 @@ Admins can customize report sections via Settings page:
 - Reorder sections using up/down arrow controls
 - Sections are stored in `reportSections` table with `displayOrder` field
 
+### Public Information Pages
+The following pages are publicly accessible without authentication:
+- **/about** - Platform overview and features
+- **/privacy** - Privacy policy with data handling practices
+- **/terms** - Terms of use and user responsibilities
+- **/help** - Searchable FAQ with categorized questions
+
+Footer links appear on the Auth page and in the sidebar (for logged-in users).
+
 ### Recent Changes (January 2026)
 - Renamed app from "Ed.D. AI Inquiry Hub" to "Inquiry Hub" for topic-agnostic use
 - Added visibility controls (private/group/cohort) to reflections, resources, and report posts
 - Implemented admin-editable report section templates with reordering
 - Fixed auth query caching to prevent UI flickering
+- Added public About, Privacy, Terms, and Help pages with footer navigation
