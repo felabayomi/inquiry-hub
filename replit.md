@@ -116,9 +116,12 @@ Visibility is set when creating content and stored in the database. The AI index
 Allows admins to define templates specifying which lenses and indices apply to each report section:
 - **Mapping Templates**: Create named mappings with description (stored in `inquiryMappings` table)
 - **Section-Lens Associations**: For each section, define which lenses and specific indices to apply (stored in `sectionLensMappings` table)
+- **Section Focus Context**: Per-section focus descriptions stored in `sectionFocusContext` table, providing additional analytical framing for AI synthesis
+- **Inquiry Focus Setting**: Global cohort inquiry focus (e.g., "AI", "Climate Change") set in Settings, explicitly referenced in all AI synthesis prompts
 - **Active Mapping**: Only one mapping can be active at a time; the AI synthesis uses the active mapping
-- **Integration with Synthesis**: When `generateSectionSynthesis` runs, it includes the mapped lenses/indices in the AI prompt to focus analysis
-- **Admin UI**: `/ai-mapping` page allows full CRUD operations on mappings with visual section-by-section configuration
+- **Three-Layer Context**: AI synthesis incorporates: (1) global inquiry focus setting, (2) section-specific focus context, (3) mapped lenses/indices
+- **Integration with Synthesis**: When `generateSectionSynthesis` runs, it includes inquiry focus, section context, and mapped lenses/indices in the AI prompt
+- **Admin UI**: `/ai-mapping` page allows full CRUD operations on mappings with visual section-by-section configuration including focus context editing
 
 ### Admin Report Template Management
 Admins can customize report sections via Settings page:
