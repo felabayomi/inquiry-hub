@@ -6,10 +6,13 @@ A collaborative web application designed for inquiry cohort members to work toge
 
 Key features include:
 - **Dashboard** with cohort timeline and progress tracking
-- **Personal Inquiry Tracking** for questions, learning pathways, and weekly reflections
-- **Shared Resource Library** for collaborative bookmarking and annotation
+- **Personal Inquiry Tracking** for questions, learning pathways, and weekly reflections with visibility controls
+- **Shared Resource Library** for collaborative bookmarking and annotation with privacy settings
 - **Meeting Management** with agendas, notes, and Zoom links
-- **Report Builder** with structured sections, version history, and ethics-focused tagging
+- **Report Builder** with structured sections, version history, ethics-focused tagging, and AI-powered synthesis
+- **AI Insights** with evidence-backed citations linking to source content
+- **Privacy Controls** allowing content to be marked as private, group-visible, or cohort-wide
+- **Admin-editable Report Templates** with customizable sections and reordering
 
 ## User Preferences
 
@@ -91,3 +94,31 @@ shared/           # Shared between client/server
 ### Environment Variables Required
 - `DATABASE_URL`: PostgreSQL connection string
 - `SESSION_SECRET`: (Optional) Secret for session encryption, defaults to dev key
+
+## Feature Details
+
+### Visibility/Privacy System
+Content types (reflections, resources, report contributions) support three visibility levels:
+- **Private**: Only visible to the content author
+- **Group**: Visible to members of the author's inquiry group
+- **Cohort**: Visible to all cohort members
+
+Visibility is set when creating content and stored in the database. The AI indexing system respects these visibility settings when generating insights.
+
+### AI-Powered Features
+- **AI Indexing**: Content is automatically indexed for AI analysis in `server/ai-service.ts`
+- **Evidence-Backed Citations**: AI insights include clickable source links that navigate to original posts/reflections/resources
+- **Section Synthesis**: Admins can generate AI summaries of report section contributions
+- Uses OpenAI integration for embeddings and completions
+
+### Admin Report Template Management
+Admins can customize report sections via Settings page:
+- Add/edit/delete section templates with title and description
+- Reorder sections using up/down arrow controls
+- Sections are stored in `reportSections` table with `displayOrder` field
+
+### Recent Changes (January 2026)
+- Renamed app from "Ed.D. AI Inquiry Hub" to "Inquiry Hub" for topic-agnostic use
+- Added visibility controls (private/group/cohort) to reflections, resources, and report posts
+- Implemented admin-editable report section templates with reordering
+- Fixed auth query caching to prevent UI flickering
