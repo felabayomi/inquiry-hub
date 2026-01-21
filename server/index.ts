@@ -95,4 +95,18 @@ app.use((req, res, next) => {
       log(`serving on port ${port}`);
     },
   );
+
+  // Graceful shutdown to release port quickly on restart
+  const shutdown = () => {
+    log("Shutting down gracefully...");
+    httpServer.close(() => {
+      log("Server closed");
+      process.exit(0);
+    });
+    // Force close after 3 seconds if connections don't close
+    setTimeout(() => process.exit(0), 3000);
+  };
+
+  process.on("SIGTERM", shutdown);
+  process.on("SIGINT", shutdown);
 })();
