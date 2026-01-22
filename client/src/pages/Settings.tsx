@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, ExternalLink, Calendar, Video, Clock, FileText, Trash2, Pencil, ChevronUp, ChevronDown, BookOpen, Scale, Users, Shield, Key, Bot, Loader2 } from "lucide-react";
 import { format } from "date-fns";
@@ -494,37 +495,54 @@ export default function Settings() {
         <Card className="paper-card">
           <CardHeader>
             <CardTitle className="text-xl font-serif">Default Justice Lenses</CardTitle>
-            <CardDescription>These are the built-in ethical lenses that members can apply to their report drafts.</CardDescription>
+            <CardDescription>These are the built-in ethical lenses that members can apply to their report drafts. Click to expand and see indices.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              {lenses?.filter(l => ['who_benefits', 'who_is_harmed', 'labor', 'power'].includes(l.slug))
-                .sort((a,b) => a.orderIndex - b.orderIndex)
-                .map((lens) => (
-                <div key={lens.id} className="flex items-center justify-between p-4 border rounded-lg gap-4 bg-white" data-testid={`default-lens-${lens.id}`}>
-                  <div className="flex items-center gap-3 flex-1">
-                    <Scale className="h-4 w-4 text-primary" />
-                    <div className="flex-1">
-                      <p className="font-medium text-slate-900">{lens.label}</p>
-                      <p className="text-xs text-muted-foreground">{lens.slug}</p>
+            {lenses?.filter(l => ['who_benefits', 'who_is_harmed', 'labor', 'power'].includes(l.slug)).length === 0 ? (
+              <p className="text-sm text-muted-foreground italic">Default lenses will be created when the system starts.</p>
+            ) : (
+              <Accordion type="multiple" className="space-y-2">
+                {lenses?.filter(l => ['who_benefits', 'who_is_harmed', 'labor', 'power'].includes(l.slug))
+                  .sort((a,b) => a.orderIndex - b.orderIndex)
+                  .map((lens) => (
+                  <AccordionItem key={lens.id} value={`default-lens-${lens.id}`} className="border rounded-lg bg-white" data-testid={`default-lens-${lens.id}`}>
+                    <div className="flex items-center justify-between pr-4">
+                      <AccordionTrigger className="flex-1 px-4 py-3 hover:no-underline">
+                        <div className="flex items-center gap-3">
+                          <Scale className="h-4 w-4 text-primary" />
+                          <div className="text-left">
+                            <p className="font-medium text-slate-900">{lens.label}</p>
+                            <p className="text-xs text-muted-foreground">{lens.slug} {lens.indices?.length ? `• ${lens.indices.length} indices` : ''}</p>
+                          </div>
+                        </div>
+                      </AccordionTrigger>
+                      <Button 
+                        size="icon" 
+                        variant="ghost" 
+                        onClick={(e) => { e.stopPropagation(); openEditLensDialog(lens); }}
+                        data-testid={`button-edit-default-lens-${lens.id}`}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button 
-                      size="icon" 
-                      variant="ghost" 
-                      onClick={() => openEditLensDialog(lens)}
-                      data-testid={`button-edit-default-lens-${lens.id}`}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-              {lenses?.filter(l => ['who_benefits', 'who_is_harmed', 'labor', 'power'].includes(l.slug)).length === 0 && (
-                <p className="text-sm text-muted-foreground italic">Default lenses will be created when the system starts.</p>
-              )}
-            </div>
+                    <AccordionContent className="px-4 pb-4">
+                      {lens.indices && lens.indices.length > 0 ? (
+                        <div className="space-y-2 pl-7">
+                          {lens.indices.map((indexItem, i) => (
+                            <div key={i} className="flex items-center gap-2 p-2 bg-slate-50 rounded text-sm">
+                              <span className="w-2 h-2 rounded-full bg-primary/30" />
+                              <span>{indexItem}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground italic pl-7">No indices defined for this lens.</p>
+                      )}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            )}
           </CardContent>
         </Card>
 
@@ -563,84 +581,74 @@ export default function Settings() {
 
             <div className="space-y-4">
               <h3 className="font-serif text-lg font-bold">Your Custom Lenses</h3>
-              <div className="space-y-2">
-                {lenses?.filter(l => !['who_benefits', 'who_is_harmed', 'labor', 'power'].includes(l.slug)).length === 0 ? (
-                  <p className="text-sm text-muted-foreground italic">No custom lenses created yet. Use the form above to add your own.</p>
-                ) : (
-                  lenses?.filter(l => !['who_benefits', 'who_is_harmed', 'labor', 'power'].includes(l.slug))
+              {lenses?.filter(l => !['who_benefits', 'who_is_harmed', 'labor', 'power'].includes(l.slug)).length === 0 ? (
+                <p className="text-sm text-muted-foreground italic">No custom lenses created yet. Use the form above to add your own.</p>
+              ) : (
+                <Accordion type="multiple" className="space-y-2">
+                  {lenses?.filter(l => !['who_benefits', 'who_is_harmed', 'labor', 'power'].includes(l.slug))
                     .sort((a,b) => a.orderIndex - b.orderIndex)
                     .map((lens) => (
-                    <div key={lens.id} className="space-y-2" data-testid={`lens-item-${lens.id}`}>
-                      {/* Lens Header */}
-                      <div className="border rounded-lg bg-white">
-                        <div className="flex items-center justify-between p-4 gap-4">
-                          <div className="flex items-center gap-3 flex-1">
+                    <AccordionItem key={lens.id} value={`custom-lens-${lens.id}`} className="border rounded-lg bg-white" data-testid={`lens-item-${lens.id}`}>
+                      <div className="flex items-center justify-between pr-4">
+                        <AccordionTrigger className="flex-1 px-4 py-3 hover:no-underline">
+                          <div className="flex items-center gap-3">
                             <Scale className="h-4 w-4 text-primary" />
-                            <div className="flex-1">
+                            <div className="text-left">
                               <p className="font-medium text-slate-900">{lens.label}</p>
-                              <p className="text-xs text-muted-foreground">{lens.slug}</p>
+                              <p className="text-xs text-muted-foreground">{lens.slug} {lens.indices?.length ? `• ${lens.indices.length} indices` : ''}</p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Button 
-                              size="icon" 
-                              variant="ghost" 
-                              onClick={() => openEditLensDialog(lens)}
-                              data-testid={`button-edit-lens-${lens.id}`}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive" data-testid={`button-delete-lens-${lens.id}`}>
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete Lens?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    This will permanently delete the "{lens.label}" lens. This action cannot be undone.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => handleDeleteLens(lens.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                    Delete
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
+                        </AccordionTrigger>
+                        <div className="flex items-center gap-1">
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            onClick={(e) => { e.stopPropagation(); openEditLensDialog(lens); }}
+                            data-testid={`button-edit-lens-${lens.id}`}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive" onClick={(e) => e.stopPropagation()} data-testid={`button-delete-lens-${lens.id}`}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Lens?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This will permanently delete the "{lens.label}" lens. This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteLens(lens.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </div>
-                      {/* Index Cards */}
-                      {lens.indices && lens.indices.length > 0 && (
-                        <div className="space-y-2 pl-6">
-                          {lens.indices.map((indexItem, i) => (
-                            <div key={i} className="flex items-center justify-between p-4 border rounded-lg bg-white gap-4">
-                              <div className="flex items-center gap-3 flex-1">
-                                <Scale className="h-4 w-4 text-muted-foreground" />
-                                <div className="flex-1">
-                                  <p className="font-medium text-slate-900">{indexItem}</p>
-                                </div>
+                      <AccordionContent className="px-4 pb-4">
+                        {lens.indices && lens.indices.length > 0 ? (
+                          <div className="space-y-2 pl-7">
+                            {lens.indices.map((indexItem, i) => (
+                              <div key={i} className="flex items-center gap-2 p-2 bg-slate-50 rounded text-sm">
+                                <span className="w-2 h-2 rounded-full bg-primary/30" />
+                                <span>{indexItem}</span>
                               </div>
-                              <Button 
-                                size="icon" 
-                                variant="ghost" 
-                                onClick={() => openEditLensDialog(lens)}
-                                data-testid={`button-edit-index-${lens.id}-${i}`}
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground italic pl-7">No indices defined for this lens.</p>
+                        )}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              )}
             </div>
           </CardContent>
         </Card>
