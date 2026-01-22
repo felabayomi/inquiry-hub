@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, ExternalLink, Calendar, Video, Clock, FileText, Trash2, Pencil, ChevronUp, ChevronDown, BookOpen, Scale, Users, Shield, Key, Bot, Loader2 } from "lucide-react";
 import { format } from "date-fns";
@@ -207,7 +208,18 @@ export default function Settings() {
 
   return (
     <PageLayout title="Admin Settings" description="Configure global application parameters.">
-      <div className="max-w-4xl space-y-8 pb-12">
+      <Tabs defaultValue="cohort" className="w-full max-w-4xl">
+        <TabsList className="mb-6 flex flex-wrap h-auto gap-1" data-testid="settings-tabs">
+          <TabsTrigger value="cohort" data-testid="tab-cohort">Cohort</TabsTrigger>
+          <TabsTrigger value="meetings" data-testid="tab-meetings">Meetings</TabsTrigger>
+          <TabsTrigger value="report" data-testid="tab-report">Report Sections</TabsTrigger>
+          <TabsTrigger value="lenses" data-testid="tab-lenses">Justice Lenses</TabsTrigger>
+          <TabsTrigger value="members" data-testid="tab-members">Members</TabsTrigger>
+          <TabsTrigger value="security" data-testid="tab-security">Security</TabsTrigger>
+          <TabsTrigger value="ai" data-testid="tab-ai">AI Tools</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="cohort" className="space-y-8 pb-12">
         {/* Cohort Configuration */}
         <Card className="paper-card">
           <CardHeader>
@@ -254,7 +266,9 @@ export default function Settings() {
             </div>
           </CardContent>
         </Card>
+        </TabsContent>
 
+        <TabsContent value="meetings" className="space-y-8 pb-12">
         {/* Meeting Management */}
         <Card className="paper-card">
           <CardHeader>
@@ -334,7 +348,9 @@ export default function Settings() {
             </div>
           </CardContent>
         </Card>
+        </TabsContent>
 
+        <TabsContent value="report" className="space-y-8 pb-12">
         {/* Report Sections Management */}
         <Card className="paper-card">
           <CardHeader>
@@ -471,7 +487,9 @@ export default function Settings() {
             </div>
           </CardContent>
         </Card>
+        </TabsContent>
 
+        <TabsContent value="lenses" className="space-y-8 pb-12">
         {/* Default Justice Lenses */}
         <Card className="paper-card">
           <CardHeader>
@@ -671,7 +689,9 @@ export default function Settings() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </TabsContent>
 
+        <TabsContent value="security" className="space-y-8 pb-12">
         {/* Security & Access */}
         <Card className="paper-card">
           <CardHeader>
@@ -689,7 +709,9 @@ export default function Settings() {
             </div>
           </CardContent>
         </Card>
+        </TabsContent>
 
+        <TabsContent value="members" className="space-y-8 pb-12">
         {/* Cohort Members */}
         <Card className="paper-card">
           <CardHeader>
@@ -755,7 +777,9 @@ export default function Settings() {
             </div>
           </CardContent>
         </Card>
+        </TabsContent>
 
+        <TabsContent value="ai" className="space-y-8 pb-12">
         {/* AI Tools */}
         <Card className="paper-card">
           <CardHeader>
@@ -793,6 +817,8 @@ export default function Settings() {
             </div>
           </CardContent>
         </Card>
+        </TabsContent>
+      </Tabs>
 
         {/* Reset Password Dialog */}
         <Dialog open={!!resetPasswordUser} onOpenChange={(open) => { if (!open) { setResetPasswordUser(null); setNewPassword(""); } }}>
@@ -851,7 +877,6 @@ export default function Settings() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
     </PageLayout>
   );
 }
