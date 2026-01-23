@@ -116,7 +116,7 @@ export default function Account() {
             <CardTitle className="text-xl font-serif flex items-center gap-2">
               <BookOpen className="h-5 w-5" /> How to Use This App
             </CardTitle>
-            <CardDescription>A complete guide to help you get the most out of the Cohort Inquiry platform.</CardDescription>
+            <CardDescription>A complete guide to help you get the most out of the Inquiry Hub platform.</CardDescription>
           </CardHeader>
           <CardContent>
             <Accordion type="single" collapsible className="w-full">

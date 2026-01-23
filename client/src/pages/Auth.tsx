@@ -38,7 +38,7 @@ export default function AuthPage() {
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h1 className="text-4xl font-serif font-bold text-slate-900 tracking-tight">Cohort Inquiry</h1>
+          <h1 className="text-4xl font-serif font-bold text-slate-900 tracking-tight">Inquiry Hub</h1>
           <p className="mt-2 text-slate-600">Collaborative research and reporting platform</p>
         </div>
 

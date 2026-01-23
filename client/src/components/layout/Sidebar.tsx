@@ -62,7 +62,7 @@ export function Sidebar() {
             </Button>
           </Link>
         </div>
-        <h1 className="text-lg font-serif font-bold text-white truncate">Cohort Inquiry</h1>
+        <h1 className="text-lg font-serif font-bold text-white truncate">Inquiry Hub</h1>
         <div className="flex items-center gap-2">
           {user?.role === "admin" && (
             <Link href="/settings">
@@ -85,7 +85,7 @@ export function Sidebar() {
         <div className="p-6 flex items-center justify-between">
           <div>
             <h1 className="text-xl font-serif font-bold text-slate-100 tracking-tight">
-              Cohort Inquiry
+              Inquiry Hub
             </h1>
             <p className="text-xs text-slate-400 mt-1 uppercase tracking-wider font-medium">Research Collective</p>
           </div>
