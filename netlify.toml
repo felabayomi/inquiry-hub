@@ -1,0 +1,19 @@
+[build]
+  command = "npm install && npx vite build"
+  publish = "dist/public"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Proxy all /api/* calls to Felix Platform backend (mounted at /iq on Render)
+[[redirects]]
+  from = "/api/*"
+  to = "https://felix-platform-backend.onrender.com/iq/api/:splat"
+  status = 200
+  force = true
+
+# SPA fallback — all other routes serve index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
