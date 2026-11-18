@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useUser } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 // Pages
 import AuthPage from "@/pages/Auth";
@@ -48,9 +49,25 @@ function ProtectedRoute({ component: Component, adminOnly = false }: { component
 
 function Router() {
   const [location] = useLocation();
-  const { user, isLoading } = useUser();
+  const { user, isLoading, isFetching, error, refetch } = useUser();
+  const isPublicPage = ["/about", "/privacy", "/terms", "/help"].includes(location);
 
-  if (isLoading) {
+  if (!isPublicPage && error) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
+        <div className="w-full max-w-md space-y-4 rounded-xl border border-slate-200 bg-white p-8 shadow-sm" role="alert">
+          <h1 className="text-2xl font-serif font-bold text-slate-900">Unable to connect to Inquiry Hub</h1>
+          <p className="text-slate-600">We couldn’t check your session. Please try again shortly. If this continues, contact your administrator.</p>
+          <Button onClick={() => void refetch()} disabled={isFetching}>
+            {isFetching ? "Connecting…" : "Try again"}
+          </Button>
+          <a href="/help" className="ml-4 text-sm underline text-slate-600">Visit Help</a>
+        </div>
+      </main>
+    );
+  }
+
+  if (!isPublicPage && isLoading) {
      return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
