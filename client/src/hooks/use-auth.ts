@@ -2,28 +2,24 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
+import { fetchSession } from "@/lib/session";
 
 type User = z.infer<typeof api.auth.me.responses[200]>;
 type LoginInput = z.infer<typeof api.auth.login.input>;
 type RegisterInput = z.infer<typeof api.auth.register.input>;
 
 export function useUser() {
-  const { data: user, isLoading, error } = useQuery<User | null>({
+  const { data: user, isLoading, isFetching, error, refetch } = useQuery<User | null>({
     queryKey: ["/api/user"],
     retry: false,
     staleTime: Infinity,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    queryFn: async () => {
-      const res = await fetch(api.auth.me.path, { credentials: "include" });
-      if (res.status === 401) return null;
-      if (!res.ok) throw new Error("Failed to fetch user");
-      return await res.json();
-    },
+    queryFn: ({ signal }) => fetchSession<User>(api.auth.me.path, signal),
   });
 
-  return { user, isLoading, error };
+  return { user, isLoading, isFetching, error, refetch };
 }
 
 export function useLogin() {
